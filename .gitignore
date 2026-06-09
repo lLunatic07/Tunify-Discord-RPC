@@ -1,0 +1,29 @@
+node_modules
+dist
+build
+.turbo
+.tmp
+apps/mobile/.git
+
+.env
+.env.*
+!.env.example
+discord_social_sdk
+
+# React Native
+apps/mobile/android/.gradle
+apps/mobile/android/app/build
+apps/mobile/ios/Pods
+apps/mobile/ios/build
+
+# Android outputs
+*.apk
+*.aab
+
+# Discord SDK binary
+apps/mobile/android/app/libs/discord_partner_sdk.aar
+
+# Local IDE
+.idea
+.vscode
+.DS_Store

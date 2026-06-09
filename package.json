@@ -1,0 +1,22 @@
+{
+  "name": "tunify",
+  "private": true,
+  "packageManager": "npm@11.4.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "mobile:android": "npm run android -w mobile",
+    "mobile:start": "npm run start -w mobile",
+    "mobile:typecheck": "npm run typecheck -w mobile"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "typescript": "latest"
+  }
+}
