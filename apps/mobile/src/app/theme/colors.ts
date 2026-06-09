@@ -1,0 +1,43 @@
+export const lightColors = {
+  background: '#F7F7FC',
+  backgroundAlt: '#EFEFF7',
+  surface: '#FFFFFF',
+  surfaceSoft: '#EFEFF7',
+  surfaceLavender: '#EDEBFF',
+  surfaceElevated: '#FFFFFF',
+  textPrimary: '#11121A',
+  textSecondary: '#6E6A7C',
+  textMuted: '#A5A1B3',
+  primary: '#6C5CE7',
+  primaryDark: '#5848D9',
+  accent: '#E84393',
+  accentSoft: '#F7D8EA',
+  divider: '#E4E2EC',
+  icon: '#343241',
+  success: '#2ECC71',
+  warning: '#F6C343',
+  danger: '#FF5C7A',
+};
+
+export const darkColors = {
+  background: '#100B16',
+  backgroundAlt: '#180D23',
+  surface: '#1D1628',
+  surfaceSoft: '#251B33',
+  surfaceLavender: '#251B33',
+  surfaceElevated: '#2B1D3A',
+  textPrimary: '#F7F3FF',
+  textSecondary: '#C8BFD6',
+  textMuted: '#8E839E',
+  primary: '#8B6CFF',
+  primaryDark: '#6C5CE7',
+  accent: '#F04CA8',
+  accentSoft: '#3A1A34',
+  divider: '#352840',
+  icon: '#E7DFF2',
+  success: '#3DDC84',
+  warning: '#FFD166',
+  danger: '#FF6B8A',
+};
+
+export type TunifyColors = typeof lightColors;
