@@ -141,6 +141,105 @@ For a physical Android phone:
 adb devices
 ```
 
+## Install on a Phone with Wireless Debugging
+
+Wireless debugging lets you build, install, and preview the app on a real Android phone without a USB cable after the first pairing step.
+
+Before starting:
+
+- Keep the laptop and Android phone on the same network.
+- On the phone, open Developer Options and enable Wireless debugging.
+- Keep the Wireless debugging screen open while pairing.
+- Make sure Android SDK Platform-Tools is installed and `adb` is available in your terminal.
+
+### 1. Pair the Phone
+
+On the phone:
+
+1. Open Settings.
+2. Go to Developer Options.
+3. Open Wireless debugging.
+4. Tap Pair device with pairing code.
+5. Note the IP address, pairing port, and pairing code shown on the phone.
+
+On the laptop:
+
+```sh
+adb pair PHONE_IP:PAIRING_PORT
+```
+
+Example:
+
+```sh
+adb pair 192.168.1.67:40699
+```
+
+Enter the pairing code when prompted.
+
+### 2. Connect ADB Wirelessly
+
+After pairing, go back to the main Wireless debugging screen on the phone and note the IP address and port shown under IP address & Port. This port is usually different from the pairing port.
+
+```sh
+adb connect PHONE_IP:CONNECT_PORT
+```
+
+Example:
+
+```sh
+adb connect 192.168.1.67:43203
+```
+
+Confirm the device is connected:
+
+```sh
+adb devices
+```
+
+You should see something like:
+
+```txt
+192.168.1.67:43203    device
+```
+
+### 3. Install and Preview the Debug App
+
+Use this flow when you want Fast Refresh / hot reload while developing.
+
+Terminal 1:
+
+```sh
+npm run mobile:start
+```
+
+Terminal 2:
+
+```sh
+npm run mobile:android
+```
+
+React Native will build the debug app, install it to the connected wireless device, and open it. Keep Metro running for Fast Refresh.
+
+### 4. Build and Install a Debug APK Manually
+
+If you want to build the debug APK first and install it yourself:
+
+```sh
+cd apps/mobile/android
+./gradlew assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+On Windows PowerShell:
+
+```powershell
+cd apps/mobile/android
+.\gradlew.bat assembleDebug
+adb install -r app\build\outputs\apk\debug\app-debug.apk
+```
+
+The debug APK still expects Metro when opened in development mode.
+
 ## Build a Release APK
 
 From the mobile Android folder:
@@ -168,6 +267,20 @@ Install it on a connected Android device:
 ```sh
 adb install -r apps/mobile/android/app/build/outputs/apk/release/app-release.apk
 ```
+
+If you are already inside `apps/mobile/android`, install it with:
+
+```sh
+adb install -r app/build/outputs/apk/release/app-release.apk
+```
+
+On Windows PowerShell:
+
+```powershell
+adb install -r app\build\outputs\apk\release\app-release.apk
+```
+
+Release APKs are standalone and do not need Metro to be running.
 
 ## Useful Commands
 
@@ -211,6 +324,16 @@ adb kill-server
 adb start-server
 adb devices
 ```
+
+If wireless debugging disconnects:
+
+```sh
+adb disconnect
+adb connect PHONE_IP:CONNECT_PORT
+adb devices
+```
+
+If `adb pair` succeeds but `adb connect` fails, check that you are using the connection port from the main Wireless debugging screen, not the pairing port.
 
 If Discord Presence does not update:
 

@@ -45,7 +45,9 @@ export function AppButton({
     [resolveColors, systemScheme, themeMode],
   );
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const iconColor = variant === 'secondary' ? colors.textPrimary : '#FFFFFF';
+  const isDarkPalette = colors.background === '#05070A';
+  const solidForeground = variant === 'primary' && isDarkPalette ? '#05070A' : '#FFFFFF';
+  const iconColor = variant === 'secondary' ? colors.textPrimary : solidForeground;
 
   return (
     <Pressable
@@ -61,7 +63,13 @@ export function AppButton({
       ]}
     >
       <Icon color={iconColor} size={18} />
-      <Text style={[styles.label, variant === 'secondary' ? styles.secondaryLabel : styles.solidLabel]}>
+      <Text
+        style={[
+          styles.label,
+          variant === 'secondary' ? styles.secondaryLabel : styles.solidLabel,
+          variant === 'primary' && isDarkPalette && styles.darkPrimaryLabel,
+        ]}
+      >
         {label}
       </Text>
     </Pressable>
@@ -81,11 +89,11 @@ const createStyles = (colors: TunifyColors) =>
       paddingHorizontal: spacing.lg,
     },
     primary: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
+      backgroundColor: colors.background === '#05070A' ? '#FFFFFF' : colors.primary,
+      borderColor: colors.background === '#05070A' ? '#FFFFFF' : colors.primary,
     },
     secondary: {
-      backgroundColor: colors.surfaceSoft,
+      backgroundColor: colors.background === '#05070A' ? 'rgba(255,255,255,0.04)' : colors.surface,
       borderColor: colors.divider,
     },
     danger: {
@@ -108,5 +116,8 @@ const createStyles = (colors: TunifyColors) =>
     },
     solidLabel: {
       color: '#FFFFFF',
+    },
+    darkPrimaryLabel: {
+      color: '#05070A',
     },
   });

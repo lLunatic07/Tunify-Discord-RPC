@@ -1,226 +1,368 @@
 <!DOCTYPE html>
 
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>SoundWave - Now Playing</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "on-tertiary-container": "#fbfcff",
-                        "surface-container-lowest": "#ffffff",
-                        "surface-container-highest": "#e1e2e7",
-                        "surface-container": "#eceef3",
-                        "on-primary": "#ffffff",
-                        "on-primary-fixed": "#140067",
-                        "inverse-on-surface": "#eff0f5",
-                        "on-background": "#191c1f",
-                        "primary-fixed-dim": "#c5c0ff",
-                        "primary-container": "#6e65d7",
-                        "outline": "#787584",
-                        "on-secondary": "#ffffff",
-                        "on-primary-fixed-variant": "#4034a6",
-                        "secondary": "#ab2c5d",
-                        "on-error-container": "#93000a",
-                        "tertiary": "#006385",
-                        "secondary-fixed-dim": "#ffb1c5",
-                        "surface-tint": "#584ebf",
-                        "surface": "#f8f9fe",
-                        "surface-bright": "#f8f9fe",
-                        "on-tertiary-fixed": "#001e2b",
-                        "on-secondary-fixed": "#3f001b",
-                        "surface-container-high": "#e7e8ed",
-                        "error-container": "#ffdad6",
-                        "inverse-primary": "#c5c0ff",
-                        "error": "#ba1a1a",
-                        "primary-fixed": "#e3dfff",
-                        "outline-variant": "#c8c4d5",
-                        "on-secondary-fixed-variant": "#8b0e45",
-                        "surface-variant": "#e1e2e7",
-                        "tertiary-container": "#007ea7",
-                        "on-surface-variant": "#474553",
-                        "secondary-container": "#fd6c9c",
-                        "primary": "#554bbc",
-                        "on-surface": "#191c1f",
-                        "tertiary-fixed": "#c2e8ff",
-                        "on-secondary-container": "#6e0034",
-                        "background": "#f8f9fe",
-                        "tertiary-fixed-dim": "#75d1ff",
-                        "on-tertiary": "#ffffff",
-                        "on-error": "#ffffff",
-                        "surface-dim": "#d8dadf",
-                        "on-primary-container": "#fffbff",
-                        "surface-container-low": "#f2f3f8",
-                        "inverse-surface": "#2e3134",
-                        "secondary-fixed": "#ffd9e1",
-                        "on-tertiary-fixed-variant": "#004d67"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
-                        "section-gap": "40px",
-                        "container-margin": "24px",
-                        "stack-md": "16px",
-                        "gutter": "16px",
-                        "stack-lg": "32px",
-                        "stack-sm": "8px"
-                    },
-                    "fontFamily": {
-                        "headline-sm": ["Plus Jakarta Sans"],
-                        "headline-md-mobile": ["Plus Jakarta Sans"],
-                        "headline-md": ["Plus Jakarta Sans"],
-                        "display-lg": ["Plus Jakarta Sans"],
-                        "label-sm": ["Plus Jakarta Sans"],
-                        "body-md": ["Plus Jakarta Sans"],
-                        "body-lg": ["Plus Jakarta Sans"]
-                    },
-                    "fontSize": {
-                        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
-                        "headline-md-mobile": ["18px", {"lineHeight": "24px", "fontWeight": "700"}],
-                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
-                        "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
-                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
-                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "500"}]
-                    }
-                }
-            }
-        }
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Tunify - Now Playing</title>
+    <!-- Material Symbols -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Tailwind Config -->
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'on-tertiary': '#383018',
+              'on-tertiary-fixed-variant': '#50462d',
+              'on-error': '#690005',
+              'tertiary-fixed-dim': '#d4c5a4',
+              outline: '#8d9195',
+              'inverse-primary': '#50616b',
+              error: '#ffb4ab',
+              'on-surface': '#e4e2e2',
+              'on-primary': '#22333c',
+              background: '#131314',
+              'on-primary-container': '#566771',
+              'secondary-fixed-dim': '#b7c8e1',
+              'inverse-on-surface': '#303031',
+              'on-secondary': '#213145',
+              'outline-variant': '#43474b',
+              'on-tertiary-fixed': '#221b06',
+              'on-error-container': '#ffdad6',
+              'surface-container': '#1f2020',
+              'on-primary-fixed-variant': '#384953',
+              'surface-bright': '#39393a',
+              'on-secondary-fixed-variant': '#38485d',
+              surface: '#131314',
+              'surface-tint': '#b7c9d5',
+              'error-container': '#93000a',
+              'surface-dim': '#131314',
+              'primary-fixed-dim': '#b7c9d5',
+              'primary-container': '#d3e5f1',
+              'secondary-fixed': '#d3e4fe',
+              'tertiary-fixed': '#f1e1bf',
+              secondary: '#b7c8e1',
+              'primary-fixed': '#d3e5f1',
+              'surface-container-high': '#292a2b',
+              'on-secondary-fixed': '#0b1c30',
+              'inverse-surface': '#e4e2e2',
+              tertiary: '#ffffff',
+              'surface-container-lowest': '#0d0e0f',
+              'on-background': '#e4e2e2',
+              'surface-container-highest': '#343535',
+              'on-surface-variant': '#c3c7cb',
+              'on-primary-fixed': '#0c1e26',
+              'on-tertiary-container': '#6e6348',
+              'secondary-container': '#3a4a5f',
+              'tertiary-container': '#f1e1bf',
+              'on-secondary-container': '#a9bad3',
+              primary: '#ffffff',
+              'surface-container-low': '#1b1c1c',
+              'surface-variant': '#343535',
+            },
+            borderRadius: {
+              DEFAULT: '0.25rem',
+              lg: '0.5rem',
+              xl: '0.75rem',
+              full: '9999px',
+            },
+            spacing: {
+              'container-padding-desktop': '48px',
+              'element-gap': '12px',
+              'container-padding-mobile': '24px',
+              unit: '8px',
+              gutter: '16px',
+            },
+            fontFamily: {
+              'headline-md': ['Plus Jakarta Sans', 'sans-serif'],
+              'label-caps': ['Plus Jakarta Sans', 'sans-serif'],
+              'headline-md-mobile': ['Plus Jakarta Sans', 'sans-serif'],
+              'body-lg': ['Plus Jakarta Sans', 'sans-serif'],
+              'display-lg': ['Plus Jakarta Sans', 'sans-serif'],
+              'body-sm': ['Plus Jakarta Sans', 'sans-serif'],
+            },
+            fontSize: {
+              'headline-md': [
+                '24px',
+                {
+                  lineHeight: '32px',
+                  letterSpacing: '-0.01em',
+                  fontWeight: '600',
+                },
+              ],
+              'label-caps': [
+                '12px',
+                {
+                  lineHeight: '16px',
+                  letterSpacing: '0.05em',
+                  fontWeight: '700',
+                },
+              ],
+              'headline-md-mobile': [
+                '20px',
+                {
+                  lineHeight: '28px',
+                  fontWeight: '600',
+                },
+              ],
+              'body-lg': [
+                '16px',
+                {
+                  lineHeight: '24px',
+                  fontWeight: '500',
+                },
+              ],
+              'display-lg': [
+                '32px',
+                {
+                  lineHeight: '40px',
+                  letterSpacing: '-0.02em',
+                  fontWeight: '700',
+                },
+              ],
+              'body-sm': [
+                '14px',
+                {
+                  lineHeight: '20px',
+                  fontWeight: '400',
+                },
+              ],
+            },
+          },
+        },
+      };
     </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .material-symbols-outlined.fill {
-            font-variation-settings: 'FILL' 1;
-        }
-        
-        .bg-pulse-gradient {
-            background: radial-gradient(circle at 50% 0%, rgba(110, 101, 215, 0.15) 0%, rgba(253, 108, 156, 0.05) 50%, rgba(248, 249, 254, 1) 100%);
-        }
-        
-        /* Concentric circles texture */
-        .concentric-circles {
-            position: absolute;
-            top: -20%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150vw;
-            height: 150vw;
-            background-image: repeating-radial-gradient(
-                circle at center,
-                transparent 0,
-                transparent 40px,
-                rgba(110, 101, 215, 0.03) 41px,
-                rgba(110, 101, 215, 0.03) 42px
-            );
-            z-index: -1;
-            pointer-events: none;
-        }
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #faf8ff;
+        color: #1b1c1c;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
 
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: #554bbc;
-            cursor: pointer;
-            margin-top: -6px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
-            box-shadow: 0 0 10px rgba(85, 75, 188, 0.5);
-        }
-        
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: linear-gradient(to right, #6e65d7 0%, #c5c0ff 50%, #e1e2e7 50%, #e1e2e7 100%);
-            border-radius: 2px;
-        }
+      /* Ambient Glow behind Album Art */
+      .album-glow {
+        position: relative;
+      }
+      .album-glow::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 110%;
+        height: 110%;
+        background: radial-gradient(
+          circle,
+          rgba(183, 201, 225, 0.5) 0%,
+          rgba(183, 201, 225, 0) 70%
+        );
+        z-index: -1;
+        border-radius: inherit;
+        filter: blur(20px);
+      }
+
+      /* Play Button Glow */
+      .play-button-glow {
+        box-shadow: 0 0 30px rgba(183, 201, 225, 0.6);
+      }
+
+      /* Custom Waveform Range Slider styling for Webkit */
+      input[type='range'] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+      }
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 12px;
+        width: 12px;
+        border-radius: 50%;
+        background: #1b1c1c;
+        cursor: pointer;
+        margin-top: -5px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+        box-shadow: 0 0 10px rgba(27, 28, 28, 0.3);
+      }
+      input[type='range']::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 2px;
+        cursor: pointer;
+        background: linear-gradient(
+          to right,
+          #1b1c1c 40%,
+          rgba(27, 28, 28, 0.2) 40%
+        );
+        border-radius: 1px;
+      }
     </style>
-</head>
-<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen relative overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
-<!-- Atmospheric Background -->
-<div class="fixed inset-0 bg-pulse-gradient z-[-2]"></div>
-<div class="concentric-circles"></div>
-<!-- Top Navigation (Contextual: Details page, so back button instead of menu) -->
-<header class="flex justify-between items-center w-full px-container-margin h-16 relative z-10">
-<button aria-label="Go Back" class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">
-<span class="material-symbols-outlined text-[24px]" data-icon="keyboard_arrow_down">keyboard_arrow_down</span>
-</button>
-<div class="flex flex-col items-center">
-<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Now Playing</span>
-<span class="font-headline-sm text-headline-sm text-on-surface">Your Mix</span>
-</div>
-<button aria-label="More Options" class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">
-<span class="material-symbols-outlined text-[24px]" data-icon="more_vert">more_vert</span>
-</button>
-</header>
-<!-- Main Content Area -->
-<main class="px-container-margin pt-stack-lg pb-[120px] max-w-md mx-auto relative z-10 flex flex-col h-[calc(100vh-64px)] justify-center">
-<!-- Album Art -->
-<div class="w-full aspect-square rounded-[8px] overflow-hidden shadow-[0_20px_40px_-10px_rgba(85,75,188,0.2)] mb-section-gap relative group">
-<img alt="Album Cover" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A striking digital installation art piece featuring glowing, generative geometric shapes suspended in a vast, minimalist gallery space. The room is illuminated by high-key, soft white lighting that creates a bright, modern light-mode aesthetic. The artwork relies on a sophisticated palette of deep blacks and pristine whites, punctuated by intense accents of vibrant red. The mood is serene yet technologically advanced." src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
-</div>
-<!-- Song Info -->
-<div class="flex justify-between items-end mb-stack-lg">
-<div class="flex flex-col">
-<h1 class="font-display-lg text-display-lg text-on-surface mb-stack-sm truncate max-w-[250px]">Re: Frain</h1>
-<h2 class="font-body-lg text-body-lg text-outline">Aimer</h2>
-</div>
-<button aria-label="Favorite" class="w-10 h-10 flex items-center justify-center text-secondary hover:scale-110 transition-transform">
-<span class="material-symbols-outlined text-[28px] fill" data-icon="favorite" data-weight="fill">favorite</span>
-</button>
-</div>
-<!-- Progress Bar -->
-<div class="mb-stack-lg w-full">
-<input aria-label="Playback progress" class="w-full appearance-none bg-transparent" max="100" min="0" type="range" value="50"/>
-<div class="flex justify-between items-center mt-2 px-1">
-<span class="font-label-sm text-label-sm text-outline-variant">2:14</span>
-<span class="font-label-sm text-label-sm text-outline-variant">-1:46</span>
-</div>
-</div>
-<!-- Playback Controls -->
-<div class="flex justify-between items-center w-full px-2">
-<button aria-label="Shuffle" class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined text-[24px]" data-icon="shuffle">shuffle</span>
-</button>
-<div class="flex items-center gap-stack-md">
-<button aria-label="Previous Track" class="w-12 h-12 flex items-center justify-center text-on-surface hover:text-primary transition-colors active:scale-95">
-<span class="material-symbols-outlined text-[32px]" data-icon="skip_previous">skip_previous</span>
-</button>
-<button aria-label="Play" class="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary-container to-secondary-container text-on-primary rounded-full shadow-[0_10px_20px_rgba(85,75,188,0.3)] hover:shadow-[0_15px_25px_rgba(85,75,188,0.4)] active:scale-95 transition-all">
-<span class="material-symbols-outlined text-[40px] ml-1 fill" data-icon="play_arrow" data-weight="fill">play_arrow</span>
-</button>
-<button aria-label="Next Track" class="w-12 h-12 flex items-center justify-center text-on-surface hover:text-primary transition-colors active:scale-95">
-<span class="material-symbols-outlined text-[32px]" data-icon="skip_next">skip_next</span>
-</button>
-</div>
-<button aria-label="Repeat" class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined text-[24px]" data-icon="repeat">repeat</span>
-</button>
-</div>
-<!-- Bottom Actions -->
-<div class="flex justify-center items-center mt-section-gap gap-stack-lg">
-<button aria-label="Queue" class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2">
-<span class="material-symbols-outlined text-[20px]" data-icon="queue_music">queue_music</span>
-<span class="font-label-sm text-label-sm uppercase tracking-wider">Up Next</span>
-</button>
-<button aria-label="Lyrics" class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2">
-<span class="material-symbols-outlined text-[20px]" data-icon="lyrics">lyrics</span>
-<span class="font-label-sm text-label-sm uppercase tracking-wider">Lyrics</span>
-</button>
-</div>
-</main>
-<!-- Suppressed BottomNavBar & FAB: This is a focused detail screen ('Now Playing'), so global navigation is intentionally omitted to prioritize the canvas. -->
-</body></html>
+  </head>
+  <body
+    class="min-h-screen flex flex-col items-center justify-between overflow-x-hidden antialiased selection:bg-[#1b1c1c]/30"
+  >
+    <!-- Top App Bar -->
+    <header
+      class="w-full top-0 fixed bg-transparent flex justify-between items-center px-container-padding-mobile py-4 z-50 flat no shadows"
+    >
+      <button
+        aria-label="Collapse"
+        class="text-[#1b1c1c] hover:opacity-80 transition-opacity cursor-pointer active:scale-95 transition-transform"
+      >
+        <span class="material-symbols-outlined" style="font-size: 28px"
+          >expand_more</span
+        >
+      </button>
+      <h1
+        class="font-headline-md-mobile text-headline-md-mobile text-[#1b1c1c] font-bold tracking-tight"
+      >
+        Now Playing
+      </h1>
+      <button
+        aria-label="Queue"
+        class="text-[#1b1c1c] hover:opacity-80 transition-opacity cursor-pointer active:scale-95 transition-transform"
+      >
+        <span class="material-symbols-outlined" style="font-size: 24px"
+          >queue_music</span
+        >
+      </button>
+    </header>
+    <!-- Main Content Canvas -->
+    <main
+      class="flex-1 w-full max-w-[500px] flex flex-col items-center justify-center px-container-padding-mobile pt-24 pb-32 z-10"
+    >
+      <!-- Album Artwork Section -->
+      <div
+        class="w-full aspect-square max-w-[320px] mx-auto mb-10 album-glow rounded-[32px]"
+      >
+        <img
+          alt="Monochrome silhouette of a person wearing a hoodie with a cat's head, set against a stark white background. The image has a moody, minimalist, and high-contrast digital art aesthetic."
+          class="w-full h-full object-cover rounded-[32px] shadow-2xl"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGJZWpFrlwkV2LJ5zkHrfe6Q-5gdGnZ5zH7geJBm8P78gDQ45G0VnRmdVKDlKiKoqc7wIdBAi8uEhg8jdpZMXOZ72VWsqMtLYYeBJjd54xt9aY41iN65ARkYpIY0OOIAFjXxtBPF9TYrp6bpf5mq011-WBvOyIXc_MOp8NkXUnF15iebcBGFyEHje_l6PEchPO9W9nzM_IYe_Xs-FB7hnivfy_LHoctyKkcCQa6EfZLlcT1VZZhFSXo8kha0GUMb1WAVvAkmSOhYLZ"
+        />
+      </div>
+      <!-- Track Information & Actions -->
+      <div class="w-full flex items-center justify-between mb-8 px-2">
+        <button
+          aria-label="Like"
+          class="text-[#566771] hover:text-[#1b1c1c] transition-colors cursor-pointer active:scale-90"
+        >
+          <span class="material-symbols-outlined" style="font-size: 24px"
+            >favorite_border</span
+          >
+        </button>
+        <div class="flex flex-col items-center text-center px-4">
+          <h2 class="font-display-lg text-display-lg text-[#1b1c1c] mb-1">
+            Unstable
+          </h2>
+          <p class="font-body-lg text-body-lg text-[#566771]">Mr. Kitty</p>
+        </div>
+        <button
+          aria-label="More options"
+          class="text-[#566771] hover:text-[#1b1c1c] transition-colors cursor-pointer active:scale-90"
+        >
+          <span class="material-symbols-outlined" style="font-size: 24px"
+            >more_horiz</span
+          >
+        </button>
+      </div>
+      <!-- Progress/Waveform Indicator -->
+      <div class="w-full mb-10 px-2 flex flex-col gap-2">
+        <!-- Simulated Waveform Track (Simplified with a styled range slider for interactivity, representing the waveform concept) -->
+        <div class="w-full relative h-6 flex items-center">
+          <input
+            aria-label="Seek track"
+            class="w-full z-10"
+            max="100"
+            min="0"
+            type="range"
+            value="38"
+          />
+          <!-- Visual representation of waveform behind the slider thumb could be added here using an SVG or repeated elements, but sticking to standard UI elements for simplicity and robustness in this isolated context -->
+        </div>
+        <div class="flex justify-between items-center w-full">
+          <span
+            class="font-label-caps text-label-caps text-[#566771] tracking-wider"
+            >1:04</span
+          >
+          <span
+            class="font-label-caps text-label-caps text-[#566771] tracking-wider"
+            >2:52</span
+          >
+        </div>
+      </div>
+      <!-- Playback Controls -->
+      <div
+        class="w-full flex items-center justify-between px-4 max-w-[340px] mx-auto"
+      >
+        <button
+          aria-label="Shuffle"
+          class="text-[#566771] hover:text-[#1b1c1c] transition-colors cursor-pointer active:scale-90"
+        >
+          <span class="material-symbols-outlined" style="font-size: 24px"
+            >shuffle</span
+          >
+        </button>
+        <button
+          aria-label="Previous track"
+          class="text-[#1b1c1c] hover:opacity-80 transition-opacity cursor-pointer active:scale-90"
+        >
+          <span
+            class="material-symbols-outlined"
+            data-weight="fill"
+            style="font-size: 36px"
+            >skip_previous</span
+          >
+        </button>
+        <!-- Primary Play Button -->
+        <button
+          aria-label="Play"
+          class="w-20 h-20 bg-[#1b1c1c] text-[#faf8ff] rounded-full flex items-center justify-center play-button-glow hover:scale-105 transition-transform active:scale-95 cursor-pointer"
+        >
+          <span
+            class="material-symbols-outlined"
+            style="font-size: 40px; font-variation-settings: 'FILL' 1"
+            >play_arrow</span
+          >
+        </button>
+        <button
+          aria-label="Next track"
+          class="text-[#1b1c1c] hover:opacity-80 transition-opacity cursor-pointer active:scale-90"
+        >
+          <span
+            class="material-symbols-outlined"
+            data-weight="fill"
+            style="font-size: 36px"
+            >skip_next</span
+          >
+        </button>
+        <button
+          aria-label="Repeat"
+          class="text-[#566771] hover:text-[#1b1c1c] transition-colors cursor-pointer active:scale-90"
+        >
+          <span class="material-symbols-outlined" style="font-size: 24px"
+            >repeat</span
+          >
+        </button>
+      </div>
+    </main>
+    <!-- Bottom Navigation Bar (Predicted Component) -->
+    <!-- Suppressed based on The Navigation Logic: Contextual State & Identity. Now Playing is a focused task/detail view, often reached from a mini-player or tracklist, implying a departure from global nav, prioritizing the canvas. -->
+  </body>
+</html>

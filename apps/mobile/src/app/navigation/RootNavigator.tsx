@@ -41,7 +41,6 @@ import {
   Shuffle,
   SkipBack,
   SkipForward,
-  SlidersHorizontal,
   Trash2,
   User,
   X,
@@ -170,18 +169,6 @@ const nextRepeatMode = (mode: RepeatMode) => {
   }
 
   return RepeatMode.Off;
-};
-
-const repeatModeLabel = (mode: RepeatMode) => {
-  if (mode === RepeatMode.Track) {
-    return 'Repeat One';
-  }
-
-  if (mode === RepeatMode.Queue) {
-    return 'Repeat All';
-  }
-
-  return 'Repeat Off';
 };
 
 const showToast = (message: string) => {
@@ -939,16 +926,18 @@ function ScreenScaffold({
   return (
     <View style={styles.scaffold}>
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={() => setRoute('settings')} style={styles.headerButton}>
-          <SlidersHorizontal color={colors.icon} size={22} />
-        </Pressable>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerEyebrow}>Local first</Text>
-          <Text style={styles.brand}>Tunify</Text>
+        <View style={styles.headerCopy}>
+          <Text style={styles.headerTitle}>Welcome Back</Text>
+          <Text style={styles.headerSubtitle}>Your local music library</Text>
         </View>
-        <Pressable accessibilityRole="button" onPress={() => setRoute('library')} style={styles.headerButton}>
-          <Search color={colors.icon} size={22} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable accessibilityRole="button" onPress={() => setRoute('library')} style={styles.headerButton}>
+            <Search color={colors.icon} size={24} />
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={() => setRoute('settings')} style={styles.headerButton}>
+            <Settings color={colors.icon} size={24} />
+          </Pressable>
+        </View>
       </View>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -1034,13 +1023,25 @@ function HomeView({
   styles: ReturnType<typeof createStyles>;
   tracks: Track[];
 }) {
+  const heroTrack = recentlyAdded[0] ?? homeTracks[0];
+  const topTracks = homeTracks.slice(0, 6);
+  const isDarkPalette = colors.background === '#05070A';
+  const primaryActionForeground = isDarkPalette ? '#05070A' : '#FAF8FF';
+
   return (
     <View>
-      <Text style={styles.pageTitle}>Your Music</Text>
-      <View style={styles.actionRow}>
-        <PrimaryButton disabled={!tracks.length} icon={Play} label="Play All" onPress={onPlayAll} styles={styles} />
-        <SecondaryButton disabled={!tracks.length} icon={Shuffle} label="Shuffle" onPress={onShuffle} styles={styles} />
+      <View style={styles.homeHero}>
+        <View style={styles.homeHeroArtWrap}>
+          <AlbumArt colors={colors} radiusValue={12} size={210} track={heroTrack} />
+        </View>
+        <Text style={styles.homeHeroLabel}>RECENTLY PLAYED</Text>
+        <Text numberOfLines={1} style={styles.homeHeroTitle}>{heroTrack?.title ?? 'No music yet'}</Text>
+        <Text numberOfLines={1} style={styles.homeHeroArtist}>{heroTrack?.artist ?? 'Add local tracks to begin'}</Text>
+        <Pressable disabled={!tracks.length} onPress={onPlayAll} style={styles.homeHeroPlay}>
+          <Play color={primaryActionForeground} size={26} />
+        </Pressable>
       </View>
+
       <View style={styles.statsGrid}>
         <Stat label="Tracks" value={tracks.length} styles={styles} />
         <Stat label="Albums" value={uniqueCount(tracks, 'album')} styles={styles} />
@@ -1048,20 +1049,32 @@ function HomeView({
         <Stat label="Playlists" value={playlists.length} styles={styles} />
       </View>
 
-      <View style={styles.shortcutRow}>
-        <ShortcutCard colors={colors} icon={Heart} label="Favorites" value={`${favoriteCount} tracks`} styles={styles} />
-        <Pressable onPress={onCreatePlaylist} style={styles.shortcutCard}>
-          <CirclePlus color={colors.primary} size={28} />
-          <Text style={styles.shortcutLabel}>New Playlist</Text>
-          <Text style={styles.shortcutValue}>Create mix</Text>
-        </Pressable>
-      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.homeActionsScroller}>
+        <View style={styles.homeActions}>
+          <Pressable disabled={!tracks.length} onPress={onPlayAll} style={[styles.homeActionChip, styles.homeActionChipPrimary]}>
+            <Play color={primaryActionForeground} size={20} />
+            <Text style={styles.homeActionPrimaryText}>Play All</Text>
+          </Pressable>
+          <Pressable disabled={!tracks.length} onPress={onShuffle} style={styles.homeActionChip}>
+            <Shuffle color={colors.textPrimary} size={20} />
+            <Text style={styles.homeActionText}>Shuffle</Text>
+          </Pressable>
+          <Pressable onPress={onCreatePlaylist} style={styles.homeActionChip}>
+            <CirclePlus color={colors.textPrimary} size={20} />
+            <Text style={styles.homeActionText}>New Mix</Text>
+          </Pressable>
+          <View style={styles.homeActionChip}>
+            <Heart color={colors.textPrimary} size={20} />
+            <Text style={styles.homeActionText}>{favoriteCount} Saved</Text>
+          </View>
+        </View>
+      </ScrollView>
 
-      <SectionHeader action="Refresh" onAction={onRefresh} styles={styles} title="Recently Added" />
+      <SectionHeader action="Refresh" onAction={onRefresh} styles={styles} title="Top Tracks" />
       {isLoading && <Text style={styles.mutedText}>Loading your local library...</Text>}
       {libraryError && <Text style={styles.warningText}>{libraryError}</Text>}
       {!isLoading && !tracks.length && <EmptyState styles={styles} text="No local music found yet." />}
-      {recentlyAdded.slice(0, 5).map(track => renderTrack(track, recentlyAdded))}
+      {topTracks.map(track => renderTrack(track, homeTracks))}
 
       <SectionHeader styles={styles} title="Local Playlists" />
       {!playlists.length && <EmptyState styles={styles} text="No playlists yet." />}
@@ -1501,34 +1514,34 @@ function NowPlayingScreen({
   styles: ReturnType<typeof createStyles>;
   track?: Track;
 }) {
+  const playIconColor = isDark ? '#05070A' : '#FAF8FF';
+
   return (
     <View style={[styles.nowPlayingScreen, isDark && styles.nowPlayingDark]}>
-      <View style={styles.ringOne} />
-      <View style={styles.ringTwo} />
-      <View style={styles.ringThree} />
       <View style={styles.nowHeader}>
         <Pressable onPress={onBack} style={styles.headerButton}>
           <ChevronDown color={colors.icon} size={28} />
         </Pressable>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerEyebrow}>Now Playing</Text>
-          <Text style={styles.brand}>Local Library</Text>
-        </View>
+        <Text style={styles.nowHeaderTitle}>Now Playing</Text>
         <Pressable onPress={onOpenQueue} style={styles.headerButton}>
           <ListMusic color={colors.icon} size={24} />
         </Pressable>
       </View>
 
       <View style={styles.nowBody}>
-        <AlbumArt colors={colors} radiusValue={8} size={300} track={track} />
+        <View style={styles.nowArtworkShell}>
+          <AlbumArt colors={colors} radiusValue={32} size={300} track={track} />
+        </View>
         <View style={styles.nowInfoRow}>
+          <Pressable onPress={onFavorite} style={styles.favoriteBig}>
+            <Heart color={colors.textSecondary} fill={isFavorite ? colors.textSecondary : 'transparent'} size={24} />
+          </Pressable>
           <View style={styles.nowTitleWrap}>
             <Text numberOfLines={1} style={styles.nowTitle}>{track?.title ?? 'No track selected'}</Text>
             <Text numberOfLines={1} style={styles.nowArtist}>{track?.artist ?? 'Unknown Artist'}</Text>
-            <Text numberOfLines={1} style={styles.nowAlbum}>{track?.album ?? 'Unknown Album'}</Text>
           </View>
-          <Pressable onPress={onFavorite} style={styles.favoriteBig}>
-            <Heart color={colors.accent} fill={isFavorite ? colors.accent : 'transparent'} size={30} />
+          <Pressable onPress={onLyrics} style={styles.favoriteBig}>
+            <MoreVertical color={colors.textSecondary} size={24} />
           </Pressable>
         </View>
         <ProgressBar
@@ -1541,26 +1554,21 @@ function NowPlayingScreen({
         />
         <View style={styles.controlsRow}>
           <Pressable onPress={onShuffle} style={styles.controlButton}>
-            <Shuffle color={shuffleEnabled ? colors.accent : colors.textSecondary} size={22} />
+            <Shuffle color={shuffleEnabled ? colors.primary : colors.textSecondary} size={24} />
           </Pressable>
           <Pressable onPress={onPrevious} style={styles.controlButtonLarge}>
-            <SkipBack color={colors.textPrimary} size={34} />
+            <SkipBack color={colors.textPrimary} size={36} />
           </Pressable>
           <Pressable onPress={isPlaying ? onPause : onPlay} style={styles.playButtonHuge}>
-            {isPlaying ? <Pause color="#FFFFFF" size={40} /> : <Play color="#FFFFFF" size={40} />}
+            {isPlaying ? <Pause color={playIconColor} size={40} /> : <Play color={playIconColor} size={40} />}
           </Pressable>
           <Pressable onPress={onNext} style={styles.controlButtonLarge}>
-            <SkipForward color={colors.textPrimary} size={34} />
+            <SkipForward color={colors.textPrimary} size={36} />
           </Pressable>
           <Pressable onPress={onRepeat} style={styles.controlButton}>
-            <Repeat color={repeatMode === RepeatMode.Off ? colors.textSecondary : colors.accent} size={22} />
+            <Repeat color={repeatMode === RepeatMode.Off ? colors.textSecondary : colors.primary} size={24} />
           </Pressable>
         </View>
-        <View style={styles.bottomActionRow}>
-          <SecondaryButton icon={ListEnd} label="Up Next" onPress={onOpenQueue} styles={styles} />
-          <SecondaryButton icon={Info} label="Lyrics" onPress={onLyrics} styles={styles} />
-        </View>
-        <Text style={styles.repeatStatus}>{repeatModeLabel(repeatMode)}</Text>
       </View>
     </View>
   );
@@ -1592,6 +1600,9 @@ function MiniPlayer({
   track: Track;
 }) {
   const progress = (duration > 0 ? `${clamp(position / duration) * 100}%` : '0%') as DimensionValue;
+  const isDarkPalette = colors.background === '#05070A';
+  const miniForeground = isDarkPalette ? '#05070A' : '#FFFFFF';
+  const miniPlayIcon = isDarkPalette ? '#FFFFFF' : '#05070A';
 
   return (
     <Pressable onPress={onOpen} style={styles.miniPlayer}>
@@ -1602,10 +1613,10 @@ function MiniPlayer({
         <View style={styles.progressTrack}><View style={[styles.progressFill, { width: progress }]} /></View>
       </View>
       <Pressable onPress={onFavorite} style={styles.trackIconButton}>
-        <Heart color={colors.accent} fill={isFavorite ? colors.accent : 'transparent'} size={20} />
+        <Heart color={miniForeground} fill={isFavorite ? miniForeground : 'transparent'} size={24} />
       </Pressable>
       <Pressable onPress={isPlaying ? onPause : onPlay} style={styles.miniButton}>
-        {isPlaying ? <Pause color="#FFFFFF" size={22} /> : <Play color="#FFFFFF" size={22} />}
+        {isPlaying ? <Pause color={miniPlayIcon} size={24} /> : <Play color={miniPlayIcon} size={24} />}
       </Pressable>
     </Pressable>
   );
@@ -1638,7 +1649,7 @@ function BottomTabs({
         const active = activeRoute === tab.route;
         return (
           <Pressable key={tab.route} onPress={() => setRoute(tab.route)} style={styles.navItem}>
-            <Icon color={active ? colors.primary : colors.textMuted} size={21} />
+            <Icon color={active ? colors.textPrimary : colors.textMuted} size={22} />
             <Text style={[styles.navLabel, active && styles.navLabelActive]}>{tab.label}</Text>
           </Pressable>
         );
@@ -2072,7 +2083,8 @@ function ProgressBar({
         onPress={seek}
         style={styles.progressBar}
       >
-        <View style={[styles.progressBarFill, { backgroundColor: colors.primary, width: progressWidth }]} />
+        <View style={[styles.progressBarFill, { backgroundColor: colors.textPrimary, width: progressWidth }]} />
+        <View style={[styles.progressThumb, { left: progressWidth }]} />
       </Pressable>
       {showTimes && (
         <View style={styles.rowBetween}>
@@ -2164,28 +2176,6 @@ function Stat({ label, value, styles }: { label: string; value: number; styles: 
   );
 }
 
-function ShortcutCard({
-  colors,
-  icon: Icon,
-  label,
-  value,
-  styles,
-}: {
-  colors: TunifyColors;
-  icon: IconType;
-  label: string;
-  value: string;
-  styles: ReturnType<typeof createStyles>;
-}) {
-  return (
-    <View style={styles.shortcutCard}>
-      <Icon color={colors.primary} size={28} />
-      <Text style={styles.shortcutLabel}>{label}</Text>
-      <Text style={styles.shortcutValue}>{value}</Text>
-    </View>
-  );
-}
-
 function EmptyState({ styles, text }: { styles: ReturnType<typeof createStyles>; text: string }) {
   return (
     <View style={styles.emptyState}>
@@ -2223,31 +2213,41 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       flex: 1,
     },
     scrollContent: {
-      padding: spacing.xl,
-      paddingBottom: 190,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.xl,
+      paddingBottom: 196,
     },
     header: {
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: spacing.xl,
-      paddingTop: spacing.md,
+      minHeight: 76,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.lg,
     },
     nowHeader: {
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
+      minHeight: 64,
       paddingHorizontal: spacing.xl,
-      paddingTop: spacing.md,
       zIndex: 2,
     },
     headerButton: {
       alignItems: 'center',
-      backgroundColor: colors.surface,
       borderRadius: radius.pill,
-      height: 44,
+      height: 46,
       justifyContent: 'center',
-      width: 44,
+      width: 46,
+    },
+    headerCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    headerActions: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: spacing.sm,
     },
     headerCenter: {
       alignItems: 'center',
@@ -2265,6 +2265,20 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       fontSize: 18,
       fontWeight: '900',
     },
+    headerTitle: {
+      color: colors.textPrimary,
+      fontFamily: typography.fontFamily.semiBold,
+      fontSize: 21,
+      fontWeight: '700',
+      lineHeight: 28,
+    },
+    headerSubtitle: {
+      color: colors.textSecondary,
+      fontFamily: typography.fontFamily.medium,
+      fontSize: 19,
+      fontWeight: '500',
+      lineHeight: 26,
+    },
     pageTitle: {
       color: colors.textPrimary,
       fontFamily: typography.fontFamily.extraBold,
@@ -2279,32 +2293,139 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       gap: spacing.md,
       marginBottom: spacing.lg,
     },
+    homeHero: {
+      alignItems: 'center',
+      backgroundColor: isDark ? '#0F172A' : '#E9EEF6',
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#DCE3EE',
+      borderRadius: 24,
+      borderWidth: 1,
+      marginBottom: spacing.xl,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.xxl,
+      shadowColor: isDark ? '#E0F2FE' : '#B7C9D5',
+      shadowOffset: { width: 0, height: 18 },
+      shadowOpacity: isDark ? 0.14 : 0.24,
+      shadowRadius: 30,
+    },
+    homeHeroArtWrap: {
+      borderRadius: 14,
+      marginBottom: spacing.xl,
+      overflow: 'hidden',
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 14 },
+      shadowOpacity: 0.22,
+      shadowRadius: 24,
+    },
+    homeHeroLabel: {
+      color: colors.textSecondary,
+      fontFamily: typography.fontFamily.medium,
+      fontSize: 16,
+      fontWeight: '500',
+      letterSpacing: 0,
+      marginBottom: spacing.md,
+      textTransform: 'uppercase',
+    },
+    homeHeroTitle: {
+      color: colors.textPrimary,
+      fontFamily: typography.fontFamily.semiBold,
+      fontSize: 22,
+      fontWeight: '700',
+      maxWidth: '88%',
+      textAlign: 'center',
+    },
+    homeHeroArtist: {
+      color: colors.textSecondary,
+      fontFamily: typography.fontFamily.medium,
+      fontSize: 19,
+      fontWeight: '500',
+      marginTop: spacing.sm,
+      maxWidth: '88%',
+      textAlign: 'center',
+    },
+    homeHeroPlay: {
+      alignItems: 'center',
+      backgroundColor: isDark ? '#FFFFFF' : '#1B1C1C',
+      borderRadius: radius.pill,
+      height: 80,
+      justifyContent: 'center',
+      marginTop: spacing.xxl,
+      shadowColor: isDark ? '#B7C9D5' : '#1B1C1C',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: isDark ? 0.34 : 0.18,
+      shadowRadius: 22,
+      width: 80,
+    },
+    homeActionsScroller: {
+      marginBottom: spacing.xl,
+      overflow: 'visible',
+    },
+    homeActions: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      paddingRight: spacing.lg,
+    },
+    homeActionChip: {
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderColor: colors.divider,
+      borderRadius: radius.pill,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: spacing.sm,
+      minHeight: 58,
+      paddingHorizontal: spacing.lg,
+    },
+    homeActionChipPrimary: {
+      backgroundColor: isDark ? '#FFFFFF' : '#1B1C1C',
+      borderColor: isDark ? '#FFFFFF' : '#1B1C1C',
+      shadowColor: isDark ? '#FFFFFF' : '#1B1C1C',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.12,
+      shadowRadius: 18,
+    },
+    homeActionText: {
+      color: colors.textPrimary,
+      fontFamily: typography.fontFamily.semiBold,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    homeActionPrimaryText: {
+      color: isDark ? '#05070A' : '#FAF8FF',
+      fontFamily: typography.fontFamily.semiBold,
+      fontSize: 16,
+      fontWeight: '700',
+    },
     statsGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: spacing.sm,
+      gap: spacing.md,
       marginBottom: spacing.xl,
     },
     stat: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
+      borderColor: colors.divider,
+      borderWidth: 1,
       flexBasis: '48%',
       flexGrow: 1,
-      minHeight: 70,
-      padding: spacing.md,
+      minHeight: 108,
+      padding: spacing.lg,
     },
     statValue: {
       color: colors.textPrimary,
-      fontFamily: typography.fontFamily.extraBold,
-      fontSize: 20,
-      fontWeight: '900',
+      fontFamily: typography.fontFamily.medium,
+      fontSize: 22,
+      fontWeight: '500',
+      textAlign: 'center',
     },
     statLabel: {
-      color: colors.textMuted,
-      fontFamily: typography.fontFamily.bold,
-      fontSize: 11,
-      fontWeight: '800',
-      marginTop: 4,
+      color: colors.textSecondary,
+      fontFamily: typography.fontFamily.medium,
+      fontSize: 18,
+      fontWeight: '500',
+      marginTop: spacing.sm,
+      textAlign: 'center',
+      textTransform: 'uppercase',
     },
     shortcutRow: {
       flexDirection: 'row',
@@ -2337,13 +2458,13 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginBottom: spacing.md,
-      marginTop: spacing.lg,
+      marginTop: spacing.xl,
     },
     sectionTitle: {
       color: colors.textPrimary,
-      fontFamily: typography.fontFamily.extraBold,
+      fontFamily: typography.fontFamily.semiBold,
       fontSize: 20,
-      fontWeight: '900',
+      fontWeight: '700',
       textTransform: 'capitalize',
     },
     sectionAction: {
@@ -2355,16 +2476,18 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     trackRow: {
       alignItems: 'center',
       backgroundColor: colors.surface,
-      borderRadius: radius.lg,
+      borderColor: 'transparent',
+      borderRadius: radius.md,
+      borderWidth: 1,
       flexDirection: 'row',
       gap: spacing.md,
       marginBottom: spacing.sm,
-      minHeight: 74,
+      minHeight: 78,
       padding: spacing.md,
     },
     trackRowActive: {
-      borderColor: colors.primary,
-      borderWidth: 1,
+      backgroundColor: isDark ? '#1D232D' : '#EEF2F8',
+      borderColor: colors.divider,
     },
     trackText: {
       flex: 1,
@@ -2372,22 +2495,22 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     trackTitle: {
       color: colors.textPrimary,
-      fontFamily: typography.fontFamily.extraBold,
-      fontSize: 15,
-      fontWeight: '900',
+      fontFamily: typography.fontFamily.semiBold,
+      fontSize: 16,
+      fontWeight: '700',
     },
     trackMeta: {
       color: colors.textSecondary,
-      fontFamily: typography.fontFamily.bold,
-      fontSize: 12,
-      fontWeight: '700',
+      fontFamily: typography.fontFamily.medium,
+      fontSize: 14,
+      fontWeight: '500',
       marginTop: 3,
     },
     duration: {
       color: colors.textMuted,
-      fontFamily: typography.fontFamily.bold,
+      fontFamily: typography.fontFamily.medium,
       fontSize: 12,
-      fontWeight: '800',
+      fontWeight: '500',
     },
     trackIconButton: {
       alignItems: 'center',
@@ -2398,6 +2521,8 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     searchBox: {
       alignItems: 'center',
       backgroundColor: colors.surface,
+      borderColor: colors.divider,
+      borderWidth: 1,
       borderRadius: radius.pill,
       flexDirection: 'row',
       gap: spacing.sm,
@@ -2417,13 +2542,16 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     tabPill: {
       backgroundColor: colors.surface,
+      borderColor: colors.divider,
+      borderWidth: 1,
       borderRadius: radius.pill,
       marginRight: spacing.sm,
       paddingHorizontal: spacing.base,
       paddingVertical: spacing.sm,
     },
     tabPillActive: {
-      backgroundColor: colors.primary,
+      backgroundColor: isDark ? '#FFFFFF' : '#1B1C1C',
+      borderColor: isDark ? '#FFFFFF' : '#1B1C1C',
     },
     tabPillText: {
       color: colors.textSecondary,
@@ -2433,7 +2561,7 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       textTransform: 'capitalize',
     },
     tabPillTextActive: {
-      color: '#FFFFFF',
+      color: isDark ? '#05070A' : '#FAF8FF',
     },
     mutedText: {
       color: colors.textMuted,
@@ -2459,87 +2587,92 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     miniPlayer: {
       alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderRadius: radius.xl,
-      bottom: 86,
+      backgroundColor: isDark ? '#FFFFFF' : '#05070A',
+      borderColor: isDark ? '#FFFFFF' : '#222530',
+      borderRadius: 24,
+      borderWidth: 1,
+      bottom: 84,
       flexDirection: 'row',
       gap: spacing.md,
-      left: spacing.xl,
+      left: spacing.lg,
       minHeight: 82,
-      padding: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
       position: 'absolute',
-      right: spacing.xl,
+      right: spacing.lg,
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.14,
-      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.26,
+      shadowRadius: 22,
     },
     miniInfo: {
       flex: 1,
       minWidth: 0,
     },
     miniTitle: {
-      color: colors.textPrimary,
-      fontFamily: typography.fontFamily.extraBold,
-      fontSize: 15,
-      fontWeight: '900',
+      color: isDark ? '#05070A' : '#FFFFFF',
+      fontFamily: typography.fontFamily.semiBold,
+      fontSize: 17,
+      fontWeight: '700',
     },
     miniArtist: {
-      color: colors.textSecondary,
-      fontFamily: typography.fontFamily.bold,
-      fontSize: 11,
-      fontWeight: '700',
+      color: isDark ? '#566771' : '#D4C0D7',
+      fontFamily: typography.fontFamily.medium,
+      fontSize: 14,
+      fontWeight: '500',
       marginTop: 2,
       marginBottom: spacing.sm,
     },
     miniButton: {
       alignItems: 'center',
-      backgroundColor: colors.primary,
+      backgroundColor: isDark ? '#05070A' : '#FFFFFF',
       borderRadius: radius.pill,
       height: 46,
       justifyContent: 'center',
       width: 46,
     },
     progressTrack: {
-      backgroundColor: colors.divider,
+      backgroundColor: isDark ? '#D8DDE5' : '#32343E',
       borderRadius: radius.pill,
       height: 4,
       overflow: 'hidden',
     },
     progressFill: {
-      backgroundColor: colors.accent,
+      backgroundColor: isDark ? '#05070A' : '#FFFFFF',
       borderRadius: radius.pill,
       height: 4,
     },
     bottomNav: {
       alignItems: 'center',
       backgroundColor: colors.surface,
-      borderRadius: radius.xl,
-      bottom: spacing.base,
+      borderColor: colors.divider,
+      borderRadius: 24,
+      borderWidth: 1,
+      bottom: spacing.md,
       flexDirection: 'row',
       justifyContent: 'space-around',
-      left: spacing.xl,
-      minHeight: 62,
+      left: 0,
+      minHeight: 78,
       position: 'absolute',
-      right: spacing.xl,
+      right: 0,
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.12,
-      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.18,
+      shadowRadius: 24,
     },
     navItem: {
       alignItems: 'center',
-      minWidth: 54,
+      minWidth: 62,
     },
     navLabel: {
       color: colors.textMuted,
-      fontFamily: typography.fontFamily.bold,
-      fontSize: 10,
-      fontWeight: '800',
+      fontFamily: typography.fontFamily.medium,
+      fontSize: 11,
+      fontWeight: '500',
       marginTop: 2,
     },
     navLabelActive: {
-      color: colors.primary,
+      color: colors.textPrimary,
     },
     permissionScreen: {
       alignItems: 'center',
@@ -2745,10 +2878,10 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       overflow: 'hidden',
     },
     nowPlayingDark: {
-      backgroundColor: '#11131C',
+      backgroundColor: '#05070A',
     },
     ringOne: {
-      borderColor: isDark ? 'rgba(189,0,255,0.08)' : 'rgba(110,101,215,0.08)',
+      borderColor: isDark ? 'rgba(224,242,254,0.05)' : 'rgba(183,201,225,0.18)',
       borderRadius: 360,
       borderWidth: 1,
       height: 720,
@@ -2758,7 +2891,7 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       width: 720,
     },
     ringTwo: {
-      borderColor: isDark ? 'rgba(189,0,255,0.08)' : 'rgba(110,101,215,0.08)',
+      borderColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(183,201,225,0.16)',
       borderRadius: 280,
       borderWidth: 1,
       height: 560,
@@ -2768,7 +2901,7 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       width: 560,
     },
     ringThree: {
-      borderColor: isDark ? 'rgba(255,75,137,0.08)' : 'rgba(253,108,156,0.08)',
+      borderColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(183,201,225,0.14)',
       borderRadius: 220,
       borderWidth: 1,
       height: 440,
@@ -2778,41 +2911,61 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       width: 440,
     },
     nowBody: {
+      alignItems: 'center',
       flex: 1,
       justifyContent: 'center',
       padding: spacing.xl,
+      paddingBottom: 128,
+      paddingTop: 96,
       zIndex: 1,
     },
+    nowHeaderTitle: {
+      color: colors.textPrimary,
+      fontFamily: typography.fontFamily.bold,
+      fontSize: 20,
+      fontWeight: '700',
+      lineHeight: 28,
+      textAlign: 'center',
+    },
+    nowArtworkShell: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      borderRadius: 32,
+      marginBottom: 40,
+      shadowColor: isDark ? '#FFFFFF' : '#B7C9D5',
+      shadowOffset: { width: 0, height: 18 },
+      shadowOpacity: isDark ? 0.08 : 0.28,
+      shadowRadius: 30,
+    },
     nowInfoRow: {
-      alignItems: 'flex-end',
+      alignItems: 'center',
+      alignSelf: 'stretch',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: spacing.xxl,
+      marginBottom: spacing.xxl,
+      paddingHorizontal: spacing.xs,
     },
     nowTitleWrap: {
       flex: 1,
       minWidth: 0,
+      paddingHorizontal: spacing.md,
     },
     nowTitle: {
       color: colors.textPrimary,
-      fontFamily: typography.fontFamily.extraBold,
-      fontSize: 28,
-      fontWeight: '900',
-      lineHeight: 36,
+      fontFamily: typography.fontFamily.bold,
+      fontSize: 32,
+      fontWeight: '700',
+      lineHeight: 40,
+      textAlign: 'center',
     },
     nowArtist: {
       color: colors.textSecondary,
-      fontFamily: typography.fontFamily.bold,
+      fontFamily: typography.fontFamily.medium,
       fontSize: 16,
-      fontWeight: '700',
-      marginTop: spacing.sm,
-    },
-    nowAlbum: {
-      color: colors.textMuted,
-      fontFamily: typography.fontFamily.bold,
-      fontSize: 13,
-      fontWeight: '700',
+      fontWeight: '500',
+      lineHeight: 24,
       marginTop: spacing.xs,
+      textAlign: 'center',
     },
     favoriteBig: {
       alignItems: 'center',
@@ -2821,29 +2974,51 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       width: 44,
     },
     progressShell: {
-      marginTop: spacing.xxl,
+      alignSelf: 'stretch',
+      marginTop: spacing.sm,
+      paddingHorizontal: spacing.xs,
     },
     progressBar: {
-      backgroundColor: colors.divider,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : colors.divider,
       borderRadius: radius.pill,
-      height: 5,
-      overflow: 'hidden',
+      height: 2,
+      overflow: 'visible',
     },
     progressBarFill: {
-      height: 5,
+      borderRadius: radius.pill,
+      height: 2,
+    },
+    progressThumb: {
+      backgroundColor: colors.textPrimary,
+      borderRadius: radius.pill,
+      height: 12,
+      marginLeft: -6,
+      position: 'absolute',
+      shadowColor: colors.textPrimary,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: isDark ? 0.5 : 0.22,
+      shadowRadius: 10,
+      top: -5,
+      width: 12,
     },
     progressTime: {
-      color: colors.textMuted,
-      fontFamily: typography.fontFamily.bold,
+      color: colors.textSecondary,
+      fontFamily: typography.fontFamily.semiBold,
       fontSize: 12,
-      fontWeight: '800',
+      fontWeight: '700',
+      letterSpacing: 0.6,
+      lineHeight: 16,
       marginTop: spacing.sm,
     },
     controlsRow: {
       alignItems: 'center',
+      alignSelf: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: spacing.xxl,
+      marginTop: 40,
+      paddingHorizontal: spacing.base,
+      width: '100%',
+      maxWidth: 340,
     },
     controlButton: {
       alignItems: 'center',
@@ -2859,15 +3034,15 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     playButtonHuge: {
       alignItems: 'center',
-      backgroundColor: isDark ? '#BD00FF' : colors.primary,
+      backgroundColor: isDark ? '#FFFFFF' : '#1B1C1C',
       borderRadius: radius.pill,
-      height: 78,
+      height: 80,
       justifyContent: 'center',
-      shadowColor: colors.accent,
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.3,
-      shadowRadius: 20,
-      width: 78,
+      shadowColor: isDark ? '#FFFFFF' : '#1B1C1C',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: isDark ? 0.4 : 0.18,
+      shadowRadius: 30,
+      width: 80,
     },
     bottomActionRow: {
       flexDirection: 'row',

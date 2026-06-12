@@ -1,12 +1,9 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html class="dark" lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-      name="viewport"
-    />
-    <title>SoundWave - Music Player</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Tunify - Home</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap"
@@ -22,130 +19,113 @@
     />
     <script id="tailwind-config">
       tailwind.config = {
-        darkMode: "class",
+        darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              "on-secondary-fixed-variant": "#8b0e45",
-              "tertiary-container": "#007ea7",
-              "on-surface-variant": "#474553",
-              "surface-variant": "#e1e2e7",
-              "surface-container-lowest": "#ffffff",
-              "primary-container": "#6e65d7",
-              tertiary: "#006385",
-              "surface-dim": "#d8dadf",
-              "surface-container-low": "#f2f3f8",
-              "secondary-fixed": "#ffd9e1",
-              secondary: "#ab2c5d",
-              "tertiary-fixed": "#c2e8ff",
-              "primary-fixed-dim": "#c5c0ff",
-              "on-secondary-container": "#6e0034",
-              "on-primary-container": "#fffbff",
-              "on-error": "#ffffff",
-              "on-primary-fixed-variant": "#4034a6",
-              "tertiary-fixed-dim": "#75d1ff",
-              "on-tertiary-container": "#fbfcff",
-              "inverse-primary": "#c5c0ff",
-              "surface-container-high": "#e7e8ed",
-              primary: "#554bbc",
-              "outline-variant": "#c8c4d5",
-              "on-tertiary-fixed-variant": "#004d67",
-              "on-secondary": "#ffffff",
-              background: "#f8f9fe",
-              "secondary-container": "#fd6c9c",
-              "primary-fixed": "#e3dfff",
-              "on-secondary-fixed": "#3f001b",
-              surface: "#f8f9fe",
-              "inverse-on-surface": "#eff0f5",
-              "inverse-surface": "#2e3134",
-              "error-container": "#ffdad6",
-              "surface-bright": "#f8f9fe",
-              "on-primary": "#ffffff",
-              outline: "#787584",
-              "surface-tint": "#584ebf",
-              "secondary-fixed-dim": "#ffb1c5",
-              "surface-container-highest": "#e1e2e7",
-              "on-surface": "#191c1f",
-              "on-tertiary": "#ffffff",
-              "on-primary-fixed": "#140067",
-              "on-error-container": "#93000a",
-              error: "#ba1a1a",
-              "surface-container": "#eceef3",
-              "on-tertiary-fixed": "#001e2b",
-              "on-background": "#191c1f",
+              'surface-container': '#1f2020',
+              'on-tertiary': '#383018',
+              'surface-dim': '#131314',
+              'outline-variant': '#43474b',
+              'on-primary': '#22333c',
+              'inverse-primary': '#50616b',
+              'on-secondary-container': '#a9bad3',
+              'secondary-fixed': '#d3e4fe',
+              secondary: '#b7c8e1',
+              'on-surface': '#e4e2e2',
+              'on-primary-fixed': '#0c1e26',
+              'inverse-surface': '#e4e2e2',
+              error: '#ffb4ab',
+              'tertiary-container': '#f1e1bf',
+              'on-tertiary-container': '#6e6348',
+              'on-primary-fixed-variant': '#384953',
+              'surface-bright': '#39393a',
+              'error-container': '#93000a',
+              'secondary-container': '#3a4a5f',
+              'primary-fixed-dim': '#b7c9d5',
+              'primary-container': '#d3e5f1',
+              primary: '#ffffff',
+              'inverse-on-surface': '#303031',
+              'on-primary-container': '#566771',
+              'on-surface-variant': '#c3c7cb',
+              'tertiary-fixed': '#f1e1bf',
+              'on-background': '#e4e2e2',
+              'on-secondary': '#213145',
+              'on-tertiary-fixed-variant': '#50462d',
+              'primary-fixed': '#d3e5f1',
+              outline: '#8d9195',
+              'surface-variant': '#343535',
+              tertiary: '#ffffff',
+              surface: '#131314',
+              'on-secondary-fixed-variant': '#38485d',
+              'surface-container-highest': '#343535',
+              'on-tertiary-fixed': '#221b06',
+              'tertiary-fixed-dim': '#d4c5a4',
+              'on-error': '#690005',
+              'surface-tint': '#b7c9d5',
+              'surface-container-lowest': '#0d0e0f',
+              'surface-container-high': '#292a2b',
+              background: '#131314',
+              'secondary-fixed-dim': '#b7c8e1',
+              'on-error-container': '#ffdad6',
+              'surface-container-low': '#1b1c1c',
+              'on-secondary-fixed': '#0b1c30',
+              'navy-bg': '#101722',
+              'navy-surface': '#1a2436',
+              'navy-glow': 'rgba(255, 255, 255, 0.15)',
             },
             borderRadius: {
-              DEFAULT: "0.25rem",
-              lg: "0.5rem",
-              xl: "0.75rem",
-              full: "9999px",
+              DEFAULT: '0.25rem',
+              lg: '0.5rem',
+              xl: '0.75rem',
+              '2xl': '1.25rem',
+              full: '9999px',
             },
             spacing: {
-              "stack-md": "16px",
-              "stack-lg": "32px",
-              "stack-sm": "8px",
-              "container-margin": "24px",
-              "section-gap": "40px",
-              gutter: "16px",
+              'container-padding-desktop': '48px',
+              'element-gap': '12px',
+              'container-padding-mobile': '24px',
+              gutter: '16px',
+              unit: '8px',
+              safe: 'env(safe-area-inset-bottom)',
             },
             fontFamily: {
-              "headline-md": ["Plus Jakarta Sans"],
-              "headline-md-mobile": ["Plus Jakarta Sans"],
-              "body-lg": ["Plus Jakarta Sans"],
-              "label-sm": ["Plus Jakarta Sans"],
-              "headline-sm": ["Plus Jakarta Sans"],
-              "display-lg": ["Plus Jakarta Sans"],
-              "body-md": ["Plus Jakarta Sans"],
+              'body-lg': ['Plus Jakarta Sans'],
+              'headline-md': ['Plus Jakarta Sans'],
+              'headline-md-mobile': ['Plus Jakarta Sans'],
+              'display-lg': ['Plus Jakarta Sans'],
+              'body-sm': ['Plus Jakarta Sans'],
+              'label-caps': ['Plus Jakarta Sans'],
             },
             fontSize: {
-              "headline-md": [
-                "20px",
+              'body-lg': ['16px', { lineHeight: '24px', fontWeight: '500' }],
+              'headline-md': [
+                '24px',
                 {
-                  lineHeight: "28px",
-                  fontWeight: "700",
+                  lineHeight: '32px',
+                  letterSpacing: '-0.01em',
+                  fontWeight: '600',
                 },
               ],
-              "headline-md-mobile": [
-                "18px",
+              'headline-md-mobile': [
+                '20px',
+                { lineHeight: '28px', fontWeight: '600' },
+              ],
+              'display-lg': [
+                '32px',
                 {
-                  lineHeight: "24px",
-                  fontWeight: "700",
+                  lineHeight: '40px',
+                  letterSpacing: '-0.02em',
+                  fontWeight: '700',
                 },
               ],
-              "body-lg": [
-                "16px",
+              'body-sm': ['14px', { lineHeight: '20px', fontWeight: '400' }],
+              'label-caps': [
+                '12px',
                 {
-                  lineHeight: "24px",
-                  fontWeight: "500",
-                },
-              ],
-              "label-sm": [
-                "12px",
-                {
-                  lineHeight: "16px",
-                  fontWeight: "500",
-                },
-              ],
-              "headline-sm": [
-                "18px",
-                {
-                  lineHeight: "24px",
-                  fontWeight: "600",
-                },
-              ],
-              "display-lg": [
-                "28px",
-                {
-                  lineHeight: "36px",
-                  letterSpacing: "-0.02em",
-                  fontWeight: "700",
-                },
-              ],
-              "body-md": [
-                "14px",
-                {
-                  lineHeight: "20px",
-                  fontWeight: "400",
+                  lineHeight: '16px',
+                  letterSpacing: '0.05em',
+                  fontWeight: '700',
                 },
               ],
             },
@@ -154,14 +134,17 @@
       };
     </script>
     <style>
-      /* Prevent text selection and highlight tap on mobile */
-      * {
+      body {
+        background-color: #101722;
+        color: #ffffff;
         -webkit-tap-highlight-color: transparent;
       }
-      body {
-        overscroll-behavior-y: none;
+      .glow-effect {
+        box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
       }
-      /* Hide scrollbar for horizontal scrolling sections */
+      .primary-glow {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+      }
       .hide-scrollbar::-webkit-scrollbar {
         display: none;
       }
@@ -169,392 +152,414 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
       }
+      .glass-panel {
+        background: rgba(26, 36, 54, 0.6);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
     </style>
   </head>
-  <body
-    class="bg-surface text-on-surface font-body-md relative h-screen w-full overflow-hidden flex flex-col"
-  >
+  <body class="font-body-lg antialiased pb-32 bg-surface-container-lowest">
     <!-- TopAppBar -->
     <header
-      class="bg-surface dark:bg-surface-dim font-headline-md-mobile text-headline-md-mobile docked full-width top-0 flex justify-between items-center w-full px-container-margin h-16 z-40 shrink-0 relative shadow-sm"
+      class="w-full top-0 fixed bg-[#101722]/90 backdrop-blur-md z-40 px-container-padding-mobile py-4 flex justify-between items-center bg-surface-container-lowest/90"
     >
-      <button
-        class="text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200"
-      >
-        <span
-          class="material-symbols-outlined"
-          style="font-variation-settings: 'FILL' 0"
-          >menu</span
+      <div class="flex flex-col">
+        <h1 class="font-headline-md-mobile text-primary tracking-tight">
+          Welcome Back
+        </h1>
+        <p class="font-body-sm text-on-surface-variant">
+          Your local music library
+        </p>
+      </div>
+      <div class="flex gap-4">
+        <button
+          class="text-on-surface-variant hover:text-primary transition-colors"
         >
-      </button>
-      <h1
-        class="font-headline-md-mobile text-headline-md-mobile text-primary dark:text-primary-fixed-dim tracking-tight"
-      >
-        SoundWave
-      </h1>
-      <button
-        class="text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200"
-      >
-        <span
-          class="material-symbols-outlined"
-          style="font-variation-settings: 'FILL' 0"
-          >search</span
+          <span class="material-symbols-outlined">search</span>
+        </button>
+        <button
+          class="text-on-surface-variant hover:text-primary transition-colors"
         >
-      </button>
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+      </div>
     </header>
-    <!-- Main Content Canvas -->
-    <main class="flex-1 overflow-y-auto w-full pb-[180px] pt-4">
-      <!-- Welcome & Actions -->
-      <section class="px-container-margin mb-stack-lg">
-        <h2 class="font-display-lg text-display-lg mb-stack-sm text-on-surface">
-          Library
-        </h2>
-        <div class="flex gap-4">
-          <button
-            class="flex-1 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-full py-3 px-6 flex items-center justify-center gap-2 shadow-lg shadow-primary-container/30 hover:opacity-90 active:scale-95 transition-all"
+    <main class="pt-24 px-container-padding-mobile space-y-8 max-w-3xl mx-auto">
+      <!-- Hero Card -->
+      <section>
+        <div
+          class="relative rounded-2xl overflow-hidden glow-effect group p-6 flex flex-col md:flex-row items-center gap-6 border border-white/5 bg-surface-container-low"
+        >
+          <div
+            class="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -ml-10 -mt-10 pointer-events-none"
+          ></div>
+          <div
+            class="w-48 h-48 md:w-56 md:h-56 shrink-0 rounded-xl overflow-hidden shadow-2xl relative"
           >
-            <span
-              class="material-symbols-outlined"
-              style="font-variation-settings: 'FILL' 1"
-              >play_arrow</span
+            <img
+              alt="Album Art"
+              class="w-full h-full object-cover"
+              data-alt="A striking black and white portrait of a person in a hooded sweatshirt, their face obscured by a surreal cat head mask. The image has high contrast, deep black shadows, and a bright white background, creating an intense, moody, and slightly unsettling artistic vibe. The lighting is harsh and direct, emphasizing the texture of the mask and the smooth fabric of the hoodie. It looks like a stylized album cover for a dark electronic or synthwave music release."
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWp2biEzLPdHcoSNczWyJ9ztR3Dco9Yw56ZkBSCCpzRCwMN1AwMXdj5nTiamtAxNdLBUPhAuXlir2slnLeuh5S4HMIqAvplCe0lKQv-m9PzoL_wPd7jz7vpIOQeiW8HKmRNt6gsUg07ih32WMJMW5QGWOiJIEmEQ1Y0huTcSlJZxdt2_KkuqADaZIAbAylMRKh4m9pOrdXalSViBTNvfl43n8mWoyre5VcoZ1LEonIjk696aRBqZFVf0eTvyLPwNLU4g0Q2i_fD4RC"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent"
+            ></div>
+          </div>
+          <div
+            class="flex-1 text-center md:text-left flex flex-col justify-center"
+          >
+            <p class="font-label-caps text-on-surface-variant mb-2">
+              RECENTLY PLAYED
+            </p>
+            <h2 class="font-display-lg text-primary mb-1">Unstable</h2>
+            <p class="font-body-lg text-secondary mb-6">Mr. Kitty</p>
+            <button
+              class="mx-auto md:mx-0 w-16 h-16 rounded-full bg-primary text-black flex items-center justify-center primary-glow hover:scale-105 active:scale-95 transition-all"
             >
-            <span class="font-body-lg text-body-lg">Play All</span>
-          </button>
-          <button
-            class="flex-1 bg-surface-container-high text-on-surface rounded-full py-3 px-6 flex items-center justify-center gap-2 hover:bg-surface-container-highest active:scale-95 transition-all"
-          >
-            <span class="material-symbols-outlined">shuffle</span>
-            <span class="font-body-lg text-body-lg">Shuffle</span>
-          </button>
+              <span
+                class="material-symbols-outlined"
+                style="font-variation-settings: 'FILL' 1"
+                >play_arrow</span
+              >
+            </button>
+          </div>
         </div>
       </section>
-      <!-- Your Playlists (Horizontal Scroll) -->
-      <section class="mb-section-gap">
+      <!-- Stats Row -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div
-          class="px-container-margin mb-stack-md flex justify-between items-center"
+          class="rounded-xl p-4 border border-white/5 flex flex-col items-center justify-center text-center bg-surface-container-low"
         >
-          <h3
-            class="font-headline-md-mobile text-headline-md-mobile text-on-surface"
+          <span class="font-headline-md text-primary">1,248</span>
+          <span class="font-label-caps text-on-surface-variant mt-1"
+            >TRACKS</span
           >
-            Your Playlists
-          </h3>
-          <button
-            class="text-primary font-body-md text-body-md hover:underline"
-          >
-            See All
-          </button>
         </div>
         <div
-          class="flex gap-4 overflow-x-auto hide-scrollbar px-container-margin snap-x snap-mandatory pb-4"
+          class="rounded-xl p-4 border border-white/5 flex flex-col items-center justify-center text-center bg-surface-container-low"
         >
-          <!-- Playlist Card 1 -->
-          <div
-            class="snap-start shrink-0 w-[140px] flex flex-col gap-2 group cursor-pointer"
+          <span class="font-headline-md text-primary">82</span>
+          <span class="font-label-caps text-on-surface-variant mt-1"
+            >ALBUMS</span
           >
-            <div
-              class="w-[140px] h-[140px] rounded-xl overflow-hidden relative shadow-md group-active:scale-95 transition-transform"
-            >
-              <img
-                alt="Playlist cover"
-                class="w-full h-full object-cover"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHQaxljTU-2YkX65L7goVH46Qr-4KKhx8mJuDrNMMpyK8I04kGyw_WK1mcD3FhKlR35-wNIy8xDECgUnJRNcCeaJlX0Ug0O5wLugteg7_6zETUQXUT3HKrjG3P1KwpyTn0Ve3ntRPE91FXPGIl61iFVmkE6rUN7kQQmcI7B-K3BTTjSEjclPN_WBOH7Hi-mekPf0rLrvCy0L0Y68acznSR87R9HgCOERXKivZcNFdAinOnIiFzzKMOI3EEzXo2mAx86JA9oTK44Ls"
-              />
-              <div
-                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
-              ></div>
-              <div
-                class="absolute bottom-2 left-2 right-2 flex justify-between items-end"
-              >
-                <span
-                  class="material-symbols-outlined text-white opacity-80"
-                  style="font-size: 20px"
-                  >headphones</span
-                >
-              </div>
-            </div>
-            <div>
-              <p class="font-body-lg text-body-lg text-on-surface truncate">
-                Vibrant Pulse
-              </p>
-              <p
-                class="font-label-sm text-label-sm text-on-surface-variant truncate"
-              >
-                Updated Today
-              </p>
-            </div>
-          </div>
-          <!-- Playlist Card 2 -->
-          <div
-            class="snap-start shrink-0 w-[140px] flex flex-col gap-2 group cursor-pointer"
+        </div>
+        <div
+          class="rounded-xl p-4 border border-white/5 flex flex-col items-center justify-center text-center bg-surface-container-low"
+        >
+          <span class="font-headline-md text-primary">341</span>
+          <span class="font-label-caps text-on-surface-variant mt-1"
+            >ARTISTS</span
           >
-            <div
-              class="w-[140px] h-[140px] rounded-xl overflow-hidden relative shadow-md group-active:scale-95 transition-transform"
-            >
-              <div
-                class="w-full h-full bg-gradient-to-br from-secondary to-secondary-container"
-              ></div>
-              <div class="absolute inset-0 flex items-center justify-center">
-                <span
-                  class="material-symbols-outlined text-white/50"
-                  style="font-size: 48px"
-                  >star</span
-                >
-              </div>
-            </div>
-            <div>
-              <p class="font-body-lg text-body-lg text-on-surface truncate">
-                Favorites
-              </p>
-              <p
-                class="font-label-sm text-label-sm text-on-surface-variant truncate"
-              >
-                128 Tracks
-              </p>
-            </div>
-          </div>
-          <!-- Playlist Card 3 -->
-          <div
-            class="snap-start shrink-0 w-[140px] flex flex-col gap-2 group cursor-pointer"
+        </div>
+        <div
+          class="rounded-xl p-4 border border-white/5 flex flex-col items-center justify-center text-center bg-surface-container-low"
+        >
+          <span class="font-headline-md text-primary">12</span>
+          <span class="font-label-caps text-on-surface-variant mt-1"
+            >PLAYLISTS</span
           >
-            <div
-              class="w-[140px] h-[140px] rounded-xl overflow-hidden relative shadow-md group-active:scale-95 transition-transform"
-            >
-              <div
-                class="w-full h-full bg-gradient-to-br from-tertiary to-tertiary-container"
-              ></div>
-              <div class="absolute inset-0 flex items-center justify-center">
-                <span
-                  class="material-symbols-outlined text-white/50"
-                  style="font-size: 48px"
-                  >nightlight</span
-                >
-              </div>
-            </div>
-            <div>
-              <p class="font-body-lg text-body-lg text-on-surface truncate">
-                Late Night Chill
-              </p>
-              <p
-                class="font-label-sm text-label-sm text-on-surface-variant truncate"
-              >
-                45 Tracks
-              </p>
-            </div>
-          </div>
-          <!-- Spacer for right margin bleeding -->
-          <div class="snap-start shrink-0 w-[8px]"></div>
         </div>
       </section>
-      <!-- Top Tracks (Vertical List) -->
-      <section class="px-container-margin">
-        <h3
-          class="font-headline-md-mobile text-headline-md-mobile text-on-surface mb-stack-md"
+      <!-- Quick Actions -->
+      <section class="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+        <button
+          class="shrink-0 bg-primary text-black px-6 py-3 rounded-full font-body-lg font-bold flex items-center gap-2 primary-glow"
         >
-          Tracks
-        </h3>
-        <div class="flex flex-col gap-2">
+          <span
+            class="material-symbols-outlined"
+            style="font-variation-settings: 'FILL' 1"
+            >play_arrow</span
+          >
+          Play All
+        </button>
+        <button
+          class="shrink-0 border border-white/10 text-primary px-6 py-3 rounded-full font-body-lg flex items-center gap-2 hover:bg-white/5 transition-colors bg-surface-container-low"
+        >
+          <span class="material-symbols-outlined">shuffle</span>
+          Shuffle
+        </button>
+        <button
+          class="shrink-0 border border-white/10 text-primary px-6 py-3 rounded-full font-body-lg flex items-center gap-2 hover:bg-white/5 transition-colors bg-surface-container-low"
+        >
+          <span class="material-symbols-outlined">favorite</span>
+          Favorites
+        </button>
+      </section>
+      <!-- Top Tracks List -->
+      <section>
+        <div class="flex justify-between items-end mb-4">
+          <h3 class="font-headline-md-mobile text-primary">Top Tracks</h3>
+        </div>
+        <div class="space-y-2">
           <!-- Track 1 -->
           <div
-            class="flex items-center p-2 rounded-xl hover:bg-surface-container-low active:scale-[0.98] transition-all cursor-pointer group"
+            class="group flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer relative overflow-hidden"
           >
+            <span
+              class="font-label-caps text-on-surface-variant w-6 text-center opacity-60"
+              >01</span
+            >
             <div
-              class="w-12 h-12 rounded-lg bg-surface-variant overflow-hidden mr-4 shrink-0 relative"
+              class="w-12 h-12 rounded-md overflow-hidden bg-surface-variant shrink-0"
             >
               <img
-                alt="Track cover"
+                alt="Track Art"
                 class="w-full h-full object-cover"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHQaxljTU-2YkX65L7goVH46Qr-4KKhx8mJuDrNMMpyK8I04kGyw_WK1mcD3FhKlR35-wNIy8xDECgUnJRNcCeaJlX0Ug0O5wLugteg7_6zETUQXUT3HKrjG3P1KwpyTn0Ve3ntRPE91FXPGIl61iFVmkE6rUN7kQQmcI7B-K3BTTjSEjclPN_WBOH7Hi-mekPf0rLrvCy0L0Y68acznSR87R9HgCOERXKivZcNFdAinOnIiFzzKMOI3EEzXo2mAx86JA9oTK44Ls"
+                data-alt="A moody, abstract geometric landscape with glowing neon outlines against a pitch-black background. Thin, sharp lines create a sense of futuristic digital terrain or a wireframe mountain range. The colors are deep blues and purples, giving off a dark synthwave aesthetic perfect for an electronic music track cover."
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGoL1smdjc0bsLs9bJ9s1OCKyn2V0qN-aNCX5-D5jiqUkw0e01OFtRUYi_i2FKPETlGvaZ3VAaNuHl8RZ9GPYHXI8eTwnhJt8TeQ4A2bDFNG43XxdnsC_aKlv_kWuKBjQWAGZYgxRV__GLg_bI-_87WjF0RDkq2PUt7a_6OB_K4KRyfAJqYeRlIoEFx33m7uiTHmR_KxAozTRSz9N2FXHxRBeV49MgPtQMSmaQQKtRTOi2zchxu61SeQeBOQRx5rIXxD3uxbYElLsg"
               />
-              <div
-                class="absolute inset-0 bg-black/20 hidden group-hover:flex items-center justify-center"
-              >
-                <span
-                  class="material-symbols-outlined text-white"
-                  style="font-size: 20px; font-variation-settings: 'FILL' 1"
-                  >play_arrow</span
-                >
-              </div>
             </div>
-            <div class="flex-1 min-w-0 mr-4">
-              <p class="font-body-lg text-body-lg text-on-surface truncate">
-                Re: Frain
-              </p>
-              <p
-                class="font-label-sm text-label-sm text-on-surface-variant truncate"
-              >
-                Aimer
+            <div class="flex-1 min-w-0">
+              <h4 class="font-body-lg text-primary truncate">Insects</h4>
+              <p class="font-body-sm text-on-surface-variant truncate">
+                Mr. Kitty
               </p>
             </div>
             <div
-              class="flex items-center gap-3 shrink-0 text-on-surface-variant"
+              class="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 md:static"
             >
-              <span class="font-label-sm text-label-sm">4:53</span>
-              <button class="hover:text-primary transition-colors">
-                <span class="material-symbols-outlined" style="font-size: 20px"
-                  >more_vert</span
-                >
+              <button class="text-on-surface-variant hover:text-primary">
+                <span class="material-symbols-outlined">favorite</span>
               </button>
             </div>
+            <span
+              class="font-body-sm text-on-surface-variant ml-auto hidden md:block"
+              >3:56</span
+            >
+            <button class="text-on-surface-variant hover:text-primary ml-2">
+              <span class="material-symbols-outlined">more_horiz</span>
+            </button>
           </div>
           <!-- Track 2 -->
           <div
-            class="flex items-center p-2 rounded-xl hover:bg-surface-container-low active:scale-[0.98] transition-all cursor-pointer group"
+            class="group flex items-center gap-4 p-3 rounded-xl bg-white/5 transition-colors cursor-pointer relative overflow-hidden"
           >
-            <div
-              class="w-12 h-12 rounded-lg bg-gradient-to-tr from-secondary to-primary overflow-hidden mr-4 shrink-0 relative"
-            >
-              <div
-                class="absolute inset-0 bg-black/20 hidden group-hover:flex items-center justify-center"
-              >
-                <span
-                  class="material-symbols-outlined text-white"
-                  style="font-size: 20px; font-variation-settings: 'FILL' 1"
-                  >play_arrow</span
-                >
+            <div class="w-6 flex justify-center text-primary">
+              <div class="flex gap-1 items-end h-4">
+                <div
+                  class="w-1 bg-primary rounded-full animate-[pulse_1s_ease-in-out_infinite] h-full"
+                ></div>
+                <div
+                  class="w-1 bg-primary rounded-full animate-[pulse_1.2s_ease-in-out_infinite_0.2s] h-2/3"
+                ></div>
+                <div
+                  class="w-1 bg-primary rounded-full animate-[pulse_0.8s_ease-in-out_infinite_0.4s] h-4/5"
+                ></div>
               </div>
             </div>
-            <div class="flex-1 min-w-0 mr-4">
-              <p class="font-body-lg text-body-lg text-on-surface truncate">
-                Neon Lights
-              </p>
-              <p
-                class="font-label-sm text-label-sm text-on-surface-variant truncate"
-              >
-                Synthwave Collective
+            <div
+              class="w-12 h-12 rounded-md overflow-hidden bg-surface-variant shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+            >
+              <img
+                alt="Track Art"
+                class="w-full h-full object-cover"
+                data-alt="A striking black and white portrait of a person in a hooded sweatshirt, their face obscured by a surreal cat head mask. The image has high contrast, deep black shadows, and a bright white background, creating an intense, moody, and slightly unsettling artistic vibe. The lighting is harsh and direct, emphasizing the texture of the mask and the smooth fabric of the hoodie."
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0E_RocHNSvRLGWkZBWIz1ICE5zP1hM5mTs1hz6P61hbnLbUf7OIZQqNu-xfmxr1wmPTxBMM5daGlcMVb4KEnZeeK0OU0TCCF4fhDqkQMLs5s8gV7fcu_qR50as0PFpiCyV6NtUAA1kkl0kwTMRavXOnhJCwgtrph13NTVcd1rCkFEOSwR9Zq6ehINMMVZ-e1nYiz_ZcEdPnONr4Aawjzw7Aq3-2lCQxqZRMC5hTlgjOa9wsaqolrSFzcyaIjacjZazPd-YmmhZGS0"
+              />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-body-lg text-primary truncate">Unstable</h4>
+              <p class="font-body-sm text-on-surface-variant truncate">
+                Mr. Kitty
               </p>
             </div>
-            <div
-              class="flex items-center gap-3 shrink-0 text-on-surface-variant"
-            >
-              <span class="font-label-sm text-label-sm">3:42</span>
-              <button class="hover:text-primary transition-colors">
-                <span class="material-symbols-outlined" style="font-size: 20px"
-                  >more_vert</span
+            <div class="flex items-center gap-4 absolute right-4 md:static">
+              <button class="text-primary">
+                <span
+                  class="material-symbols-outlined"
+                  style="font-variation-settings: 'FILL' 1"
+                  >favorite</span
                 >
               </button>
             </div>
+            <span class="font-body-sm text-primary ml-auto hidden md:block"
+              >2:52</span
+            >
+            <button class="text-on-surface-variant hover:text-primary ml-2">
+              <span class="material-symbols-outlined">more_horiz</span>
+            </button>
           </div>
           <!-- Track 3 -->
           <div
-            class="flex items-center p-2 rounded-xl hover:bg-surface-container-low active:scale-[0.98] transition-all cursor-pointer group"
+            class="group flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer relative overflow-hidden"
           >
-            <div
-              class="w-12 h-12 rounded-lg bg-gradient-to-tr from-tertiary to-tertiary-container overflow-hidden mr-4 shrink-0 relative"
+            <span
+              class="font-label-caps text-on-surface-variant w-6 text-center opacity-60"
+              >03</span
             >
-              <div
-                class="absolute inset-0 bg-black/20 hidden group-hover:flex items-center justify-center"
-              >
-                <span
-                  class="material-symbols-outlined text-white"
-                  style="font-size: 20px; font-variation-settings: 'FILL' 1"
-                  >play_arrow</span
-                >
-              </div>
+            <div
+              class="w-12 h-12 rounded-md overflow-hidden bg-surface-variant shrink-0"
+            >
+              <img
+                alt="Track Art"
+                class="w-full h-full object-cover"
+                data-alt="A minimal, abstract composition featuring soft, hazy gradients of pale blue and off-white. The texture looks like frosted glass or dense fog, creating a serene, ambient, and cold atmosphere. It's subtle and atmospheric, suitable for an ambient or ethereal electronic track cover."
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmN5SFt3-awOuuZWx7S4JhTisVwmfgUb1LlXeKznDRlSRdmd35XCRNk9tcYplYCc4ai6bAa705q93A74zktAijVuJkZg7bbP0zVq_3779yTGEQqKi5EOqF-qr35WuMoeYIEB3MIoLTFdFDrA-5Oq1fqKbB-JUkwxt6o2wHr3GPo4o53zJ2vmjml-Anfq1JFwR67wJ_k-oMhECl1lyATX2wO0UphGJU6LGDIToM2YT80_4vAtVG8scxpfsvwDV_vrWPMEGYghJkZ-3w"
+              />
             </div>
-            <div class="flex-1 min-w-0 mr-4">
-              <p class="font-body-lg text-body-lg text-on-surface truncate">
-                Ocean Drive
-              </p>
-              <p
-                class="font-label-sm text-label-sm text-on-surface-variant truncate"
-              >
-                The Midnight
+            <div class="flex-1 min-w-0">
+              <h4 class="font-body-lg text-primary truncate">Sacrifice</h4>
+              <p class="font-body-sm text-on-surface-variant truncate">
+                Mr. Kitty
               </p>
             </div>
             <div
-              class="flex items-center gap-3 shrink-0 text-on-surface-variant"
+              class="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 md:static"
             >
-              <span class="font-label-sm text-label-sm">4:15</span>
-              <button class="hover:text-primary transition-colors">
-                <span class="material-symbols-outlined" style="font-size: 20px"
-                  >more_vert</span
-                >
+              <button class="text-on-surface-variant hover:text-primary">
+                <span class="material-symbols-outlined">favorite</span>
               </button>
             </div>
+            <span
+              class="font-body-sm text-on-surface-variant ml-auto hidden md:block"
+              >6:54</span
+            >
+            <button class="text-on-surface-variant hover:text-primary ml-2">
+              <span class="material-symbols-outlined">more_horiz</span>
+            </button>
           </div>
         </div>
       </section>
     </main>
-    <!-- Mini Player (Floating above BottomNavBar) -->
+    <!-- Mini Player Overlay -->
     <div
-      class="fixed bottom-[100px] left-4 right-4 bg-surface-container-high/90 backdrop-blur-md rounded-xl p-2 shadow-lg z-50 flex items-center border border-white/10 cursor-pointer active:scale-[0.98] transition-transform"
+      class="fixed bottom-[96px] left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-[600px] z-40"
     >
       <div
-        class="w-10 h-10 rounded-lg overflow-hidden shrink-0 mr-3 animate-[spin_10s_linear_infinite]"
+        class="bg-primary text-black rounded-2xl p-2 flex items-center gap-4 shadow-[0_0_30px_rgba(255,255,255,0.2)] cursor-pointer"
       >
-        <img
-          alt="Currently playing cover"
-          class="w-full h-full object-cover"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHQaxljTU-2YkX65L7goVH46Qr-4KKhx8mJuDrNMMpyK8I04kGyw_WK1mcD3FhKlR35-wNIy8xDECgUnJRNcCeaJlX0Ug0O5wLugteg7_6zETUQXUT3HKrjG3P1KwpyTn0Ve3ntRPE91FXPGIl61iFVmkE6rUN7kQQmcI7B-K3BTTjSEjclPN_WBOH7Hi-mekPf0rLrvCy0L0Y68acznSR87R9HgCOERXKivZcNFdAinOnIiFzzKMOI3EEzXo2mAx86JA9oTK44Ls"
-        />
-      </div>
-      <div class="flex-1 min-w-0 mr-2">
-        <p
-          class="font-body-lg text-body-lg text-on-surface truncate font-semibold"
-        >
-          Re: Frain
-        </p>
-        <p class="font-label-sm text-label-sm text-on-surface-variant truncate">
-          Aimer
-        </p>
-      </div>
-      <div class="flex items-center gap-1 shrink-0">
-        <button
-          class="w-10 h-10 flex items-center justify-center text-on-surface hover:text-primary transition-colors"
-        >
-          <span class="material-symbols-outlined" style="font-size: 24px"
-            >favorite</span
-          >
+        <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 ml-1">
+          <img
+            alt="Now Playing Art"
+            class="w-full h-full object-cover"
+            data-alt="A striking black and white portrait of a person in a hooded sweatshirt, their face obscured by a surreal cat head mask. The image has high contrast, deep black shadows, and a bright white background, creating an intense, moody, and slightly unsettling artistic vibe. The lighting is harsh and direct, emphasizing the texture of the mask and the smooth fabric of the hoodie."
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAtsRwGWlw-YmQQigYJECh8MqWBMipZTirQypTCXQ895BP0AiTDtE3nnn7waBaXUSivEe4PVxU9be0agfmTXHmiPHwOPoJElUHfLoDYN--U-wMf3OIUOYAwPEteyTRFM3yiM-bqI_jIlPrJ_ULyueONczU-EUZtKh6B1JkEkGCk4w8P3wThSYAQKTjtGqugCMmjQ_bfoF_h7gZNL-MTqg5m347bdy6W-7k1SXS-3OeehskDojKSaSiFDJTU_YNowHh-Hsf3pd51HA8"
+          />
+        </div>
+        <div class="flex-1 min-w-0">
+          <h4 class="font-body-lg font-bold truncate">Unstable</h4>
+          <p class="font-body-sm opacity-70 truncate">Mr. Kitty</p>
+        </div>
+        <button class="text-black hover:opacity-70 transition-opacity p-2">
+          <span class="material-symbols-outlined">favorite</span>
         </button>
-        <button class="w-10 h-10 flex items-center justify-center text-primary">
+        <button
+          class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:scale-105 transition-transform mr-1"
+        >
           <span
             class="material-symbols-outlined"
-            style="font-size: 32px; font-variation-settings: 'FILL' 1"
-            >pause_circle</span
+            style="font-variation-settings: 'FILL' 1"
+            >pause</span
           >
         </button>
-      </div>
-      <!-- Mini Progress Bar -->
-      <div
-        class="absolute bottom-0 left-2 right-2 h-[2px] bg-surface-variant rounded-full overflow-hidden"
-      >
-        <div
-          class="h-full bg-gradient-to-r from-primary to-secondary w-1/3 rounded-full"
-        ></div>
       </div>
     </div>
     <!-- BottomNavBar -->
     <nav
-      class="bg-surface-container/80 dark:bg-surface-container-high/80 backdrop-blur-lg text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm docked full-width bottom-0 rounded-t-xl shadow-[0_-10px_20px_rgba(0,0,0,0.05)] dark:shadow-none shadow-lg fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 h-[90px] pb-safe shrink-0 md:hidden"
+      class="fixed bottom-0 w-full z-50 rounded-t-2xl glass-panel shadow-2xl border-t border-white/5 md:hidden"
     >
-      <button
-        class="flex items-center justify-center text-on-surface-variant dark:text-outline-variant w-12 h-12 hover:text-primary dark:hover:text-primary-fixed-dim active:scale-90 transition-all duration-300 flex-col gap-1"
+      <div
+        class="flex justify-around items-center h-20 px-container-padding-mobile pb-safe"
       >
-        <span class="material-symbols-outlined">home</span>
-        <span class="font-label-sm text-[10px] hidden">Home</span>
-      </button>
-      <button
-        class="flex items-center justify-center text-on-surface-variant dark:text-outline-variant w-12 h-12 hover:text-primary dark:hover:text-primary-fixed-dim active:scale-90 transition-all duration-300 flex-col gap-1"
-      >
-        <span class="material-symbols-outlined">explore</span>
-        <span class="font-label-sm text-[10px] hidden">Explore</span>
-      </button>
-      <button
-        class="flex items-center justify-center bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-full w-12 h-12 shadow-[0_0_15px_rgba(85,75,188,0.4)] hover:text-primary dark:hover:text-primary-fixed-dim active:scale-90 transition-all duration-300 flex-col gap-1"
-      >
-        <span
-          class="material-symbols-outlined"
-          style="font-variation-settings: 'FILL' 1"
-          >library_music</span
+        <!-- Home (Active) -->
+        <button
+          class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] tap-highlight-transparent active:scale-90 transition-transform w-16"
         >
-        <span class="font-label-sm text-[10px] hidden">Library</span>
-      </button>
-      <button
-        class="flex items-center justify-center text-on-surface-variant dark:text-outline-variant w-12 h-12 hover:text-primary dark:hover:text-primary-fixed-dim active:scale-90 transition-all duration-300 flex-col gap-1"
-      >
-        <span class="material-symbols-outlined">person</span>
-        <span class="font-label-sm text-[10px] hidden">Profile</span>
-      </button>
+          <span
+            class="material-symbols-outlined mb-1"
+            style="font-variation-settings: 'FILL' 1"
+            >home</span
+          >
+          <span class="font-label-caps text-[10px]">Home</span>
+        </button>
+        <!-- Search -->
+        <button
+          class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:text-primary hover:opacity-100 transition-colors tap-highlight-transparent active:scale-90 w-16"
+        >
+          <span class="material-symbols-outlined mb-1">search</span>
+          <span class="font-label-caps text-[10px]">Search</span>
+        </button>
+        <!-- Library -->
+        <button
+          class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:text-primary hover:opacity-100 transition-colors tap-highlight-transparent active:scale-90 w-16"
+        >
+          <span class="material-symbols-outlined mb-1">library_music</span>
+          <span class="font-label-caps text-[10px]">Library</span>
+        </button>
+        <!-- Hotlist -->
+        <button
+          class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:text-primary hover:opacity-100 transition-colors tap-highlight-transparent active:scale-90 w-16"
+        >
+          <span class="material-symbols-outlined mb-1"
+            >local_fire_department</span
+          >
+          <span class="font-label-caps text-[10px]">Hotlist</span>
+        </button>
+      </div>
     </nav>
+    <!-- Desktop Navigation (Hidden on mobile) -->
+    <nav
+      class="hidden md:flex fixed top-0 w-64 h-full bg-[#101722] border-r border-white/5 flex-col py-8 z-50 bg-surface-container-lowest"
+    >
+      <div class="px-8 mb-12">
+        <h1 class="font-headline-md text-primary font-bold tracking-tight">
+          Tunify
+        </h1>
+      </div>
+      <div class="flex-1 flex flex-col gap-2 px-4">
+        <button
+          class="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/5 text-primary primary-glow transition-all"
+        >
+          <span
+            class="material-symbols-outlined"
+            style="font-variation-settings: 'FILL' 1"
+            >home</span
+          >
+          <span class="font-body-lg font-bold">Home</span>
+        </button>
+        <button
+          class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:text-primary hover:bg-white/5 transition-all"
+        >
+          <span class="material-symbols-outlined">search</span>
+          <span class="font-body-lg">Search</span>
+        </button>
+        <button
+          class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:text-primary hover:bg-white/5 transition-all"
+        >
+          <span class="material-symbols-outlined">library_music</span>
+          <span class="font-body-lg">Library</span>
+        </button>
+        <button
+          class="flex items-center gap-4 px-4 py-3 rounded-xl text-on-surface-variant hover:text-primary hover:bg-white/5 transition-all"
+        >
+          <span class="material-symbols-outlined">local_fire_department</span>
+          <span class="font-body-lg">Hotlist</span>
+        </button>
+      </div>
+    </nav>
+    <style>
+      @media (min-width: 768px) {
+        body {
+          padding-bottom: 0;
+        }
+        main {
+          padding-left: calc(16rem + 24px);
+        } /* 64w + padding */
+        header {
+          display: none;
+        }
+        .mini-player-container {
+          left: calc(16rem + 24px);
+          right: 24px;
+          bottom: 24px;
+          width: auto;
+          max-width: 600px;
+          transform: none;
+        }
+      }
+    </style>
   </body>
 </html>
