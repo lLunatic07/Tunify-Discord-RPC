@@ -413,6 +413,7 @@ Java_com_tunify_mobile_discord_DiscordPresenceModule_nativeUpdatePresence(
   jstring artist,
   jstring album,
   jdouble startedAt,
+  jdouble endsAt,
   jstring largeImage,
   jstring largeText,
   jstring smallImage,
@@ -451,6 +452,9 @@ Java_com_tunify_mobile_discord_DiscordPresenceModule_nativeUpdatePresence(
     if (startedAt > 0) {
       discordpp::ActivityTimestamps timestamps;
       timestamps.SetStart(static_cast<uint64_t>(startedAt));
+      if (endsAt > startedAt) {
+        timestamps.SetEnd(static_cast<uint64_t>(endsAt));
+      }
       activity.SetTimestamps(timestamps);
     }
 

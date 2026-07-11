@@ -195,18 +195,21 @@ export const PlayerService = {
     const state = usePlayerStore.getState();
     const currentTrack = state.currentTrack;
     const wasPlaying = state.isPlaying;
+    const currentPosition = state.position;
     const sourceQueue = state.queue.length ? state.queue : currentTrack ? [currentTrack] : [];
-    if (!sourceQueue.length) {
+    if (!sourceQueue.length || !currentTrack) {
       return;
     }
 
-    const shuffled = [...sourceQueue].sort(() => Math.random() - 0.5);
-    const queueIndex = Math.max(
-      0,
-      shuffled.findIndex(track => track.id === currentTrack?.id),
-    );
+    const shuffled = [
+      currentTrack,
+      ...sourceQueue
+        .filter(track => track.id !== currentTrack.id)
+        .sort(() => Math.random() - 0.5),
+    ];
     usePlayerStore.getState().setShuffleEnabled(!state.shuffleEnabled);
-    await PlayerService.loadQueue(shuffled, queueIndex);
+    await PlayerService.loadQueue(shuffled, 0);
+    await PlayerService.seekTo(currentPosition);
     if (wasPlaying) {
       await PlayerService.play();
     }

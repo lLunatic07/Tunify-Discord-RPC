@@ -30,6 +30,7 @@ import {
   ListEnd,
   ListMusic,
   ListPlus,
+  MoreHorizontal,
   MoreVertical,
   Music,
   Pause,
@@ -46,6 +47,7 @@ import {
   X,
 } from 'lucide-react-native';
 import { RepeatMode } from 'react-native-track-player';
+import AnimatedGlow, { type PresetConfig } from 'react-native-animated-glow';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { DiscordPresencePayload, Track } from '@tunify/shared';
 
@@ -80,6 +82,11 @@ type TrackGroup = {
   subtitle: string;
   tracks: Track[];
   icon: IconType;
+};
+
+type TrackMenuTarget = {
+  track: Track;
+  playlist?: Playlist;
 };
 
 const formatDuration = (seconds?: number) => {
@@ -195,7 +202,7 @@ export function RootNavigator() {
   const [playlistName, setPlaylistName] = useState('');
   const [playlistError, setPlaylistError] = useState<string | undefined>();
   const [trackForPlaylist, setTrackForPlaylist] = useState<Track | undefined>();
-  const [trackMenuTarget, setTrackMenuTarget] = useState<Track | undefined>();
+  const [trackMenuTarget, setTrackMenuTarget] = useState<TrackMenuTarget | undefined>();
   const [trackDetailsTarget, setTrackDetailsTarget] = useState<Track | undefined>();
   const [addTracksPlaylist, setAddTracksPlaylist] = useState<Playlist | undefined>();
   const [queueVisible, setQueueVisible] = useState(false);
@@ -248,7 +255,7 @@ export function RootNavigator() {
     state => state.setUploadLocalAlbumArtEnabled,
   );
 
-  const visibleTracks = useMemo(() => sortTracks(searchTracks(query), sortMode), [query, searchTracks, sortMode]);
+  const visibleTracks = useMemo(() => sortTracks(searchTracks(query), sortMode), [query, searchTracks, sortMode, tracks]);
   const trackById = useMemo(() => new Map(tracks.map(track => [track.id, track])), [tracks]);
   const favoriteTracks = useMemo(
     () =>
@@ -258,10 +265,6 @@ export function RootNavigator() {
         .map(favorite => trackById.get(favorite.trackId))
         .filter(Boolean) as Track[],
     [favorites, trackById],
-  );
-  const recentlyAdded = useMemo(
-    () => sortTracks(tracks, 'recent').slice(0, 8),
-    [tracks],
   );
   const homeTracks = useMemo(() => sortTracks(tracks, 'title').slice(0, 12), [tracks]);
   const selectedPlaylist = playlists.find(playlist => playlist.id === selectedPlaylistId);
@@ -331,6 +334,8 @@ export function RootNavigator() {
     const didUpdate = await DiscordPresence.updatePresence(payload);
     if (!didUpdate) {
       setDiscordError('Discord native presence update failed. Check login status and Discord asset keys.');
+    } else {
+      setDiscordError(undefined);
     }
 
     if (!shouldBePlaying) {
@@ -355,7 +360,10 @@ export function RootNavigator() {
         setLastDiscordPayload(remotePayload);
 
         if (useDiscordStore.getState().status === 'connected') {
-          await DiscordPresence.updatePresence(remotePayload);
+          const didUpdateRemote = await DiscordPresence.updatePresence(remotePayload);
+          if (didUpdateRemote) {
+            setDiscordError(undefined);
+          }
         }
       });
   }, [
@@ -383,6 +391,13 @@ export function RootNavigator() {
     }
 
     await PlayerService.play();
+  };
+
+  const seekActiveTrack = async (seconds: number) => {
+    await PlayerService.seekTo(seconds);
+    if (activeTrack && isPlaying && discordStatus === 'connected') {
+      await updateDiscordPresenceForTrack(activeTrack, true);
+    }
   };
 
   useEffect(() => {
@@ -512,13 +527,13 @@ export function RootNavigator() {
     setTrackForPlaylist(undefined);
   };
 
-  const renderTrack = (track: Track, sourceQueue = tracks) => (
+  const renderTrack = (track: Track, sourceQueue = tracks, playlist?: Playlist) => (
     <TrackRow
       colors={colors}
       isFavorite={isFavorite(track.id)}
       isPlaying={currentTrack?.id === track.id && isPlaying}
       key={track.id}
-      onMore={() => setTrackMenuTarget(track)}
+      onMore={() => setTrackMenuTarget({ track, playlist })}
       onPress={() => playTrack(track, sourceQueue)}
       onToggleFavorite={() => toggleFavorite(track.id)}
       styles={styles}
@@ -626,7 +641,7 @@ export function RootNavigator() {
           onPlay={resumeActiveTrack}
           onPrevious={() => PlayerService.previous()}
           onRepeat={() => PlayerService.setRepeatMode(nextRepeatMode(repeatMode))}
-          onSeek={seconds => PlayerService.seekTo(seconds)}
+          onSeek={seekActiveTrack}
           onShuffle={() => PlayerService.toggleShuffle()}
           position={position}
           repeatMode={repeatMode}
@@ -665,7 +680,6 @@ export function RootNavigator() {
               playTrack(shuffled[0], shuffled);
             }}
             playlists={playlists}
-            recentlyAdded={recentlyAdded}
             renderTrack={renderTrack}
             styles={styles}
             tracks={tracks}
@@ -700,6 +714,7 @@ export function RootNavigator() {
 
         {route === 'favorites' && (
           <FavoritesView
+            colors={colors}
             onPlayAll={() => favoriteTracks[0] && playTrack(favoriteTracks[0], favoriteTracks)}
             onShuffle={() => {
               if (!favoriteTracks.length) {
@@ -734,7 +749,6 @@ export function RootNavigator() {
             onBack={() => setRoute('playlists')}
             onDelete={confirmDeletePlaylist}
             onPlayTrack={playTrack}
-            onRemoveTrack={removeTrackFromPlaylist}
             onRename={openRenamePlaylist}
             onShuffle={playlistTracks => {
               if (!playlistTracks.length) {
@@ -783,18 +797,18 @@ export function RootNavigator() {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      {content}
+      <View style={styles.routeTransition}>
+        {content}
+      </View>
       {route !== 'nowPlaying' && activeTrack && (
         <MiniPlayer
           colors={colors}
-          duration={duration || activeTrack.duration || 0}
           isFavorite={isFavorite(activeTrack.id)}
           isPlaying={isPlaying}
           onFavorite={() => toggleFavorite(activeTrack.id)}
           onOpen={() => setRoute('nowPlaying')}
           onPause={pause}
           onPlay={resumeActiveTrack}
-          position={position}
           styles={styles}
           track={activeTrack}
         />
@@ -804,6 +818,7 @@ export function RootNavigator() {
       )}
 
       <PlaylistNameModal
+        colors={colors}
         error={playlistError}
         onClose={() => {
           closePlaylistNameModal();
@@ -845,7 +860,7 @@ export function RootNavigator() {
 
       <TrackMoreMenu
         colors={colors}
-        isFavorite={trackMenuTarget ? isFavorite(trackMenuTarget.id) : false}
+        isFavorite={trackMenuTarget ? isFavorite(trackMenuTarget.track.id) : false}
         onAddToPlaylist={track => {
           setTrackForPlaylist(track);
           setTrackMenuTarget(undefined);
@@ -865,6 +880,11 @@ export function RootNavigator() {
           playTrack(track, tracks);
           setTrackMenuTarget(undefined);
         }}
+        onRemoveFromPlaylist={async (playlist, track) => {
+          await removeTrackFromPlaylist(playlist.id, track.id);
+          setTrackMenuTarget(undefined);
+          showToast('Removed from playlist');
+        }}
         onToggleFavorite={track => {
           toggleFavorite(track.id);
           setTrackMenuTarget(undefined);
@@ -873,8 +893,9 @@ export function RootNavigator() {
           setTrackDetailsTarget(track);
           setTrackMenuTarget(undefined);
         }}
+        playlist={trackMenuTarget?.playlist}
         styles={styles}
-        track={trackMenuTarget}
+        track={trackMenuTarget?.track}
       />
 
       <TrackDetailsModal
@@ -932,10 +953,10 @@ function ScreenScaffold({
         </View>
         <View style={styles.headerActions}>
           <Pressable accessibilityRole="button" onPress={() => setRoute('library')} style={styles.headerButton}>
-            <Search color={colors.icon} size={24} />
+            <Search color={colors.icon} size={22} />
           </Pressable>
           <Pressable accessibilityRole="button" onPress={() => setRoute('settings')} style={styles.headerButton}>
-            <Settings color={colors.icon} size={24} />
+            <Settings color={colors.icon} size={22} />
           </Pressable>
         </View>
       </View>
@@ -1002,7 +1023,6 @@ function HomeView({
   onRefresh,
   onShuffle,
   playlists,
-  recentlyAdded,
   renderTrack,
   styles,
   tracks,
@@ -1018,30 +1038,16 @@ function HomeView({
   onRefresh: () => void;
   onShuffle: () => void;
   playlists: Playlist[];
-  recentlyAdded: Track[];
   renderTrack: (track: Track, sourceQueue?: Track[]) => React.ReactNode;
   styles: ReturnType<typeof createStyles>;
   tracks: Track[];
 }) {
-  const heroTrack = recentlyAdded[0] ?? homeTracks[0];
   const topTracks = homeTracks.slice(0, 6);
-  const isDarkPalette = colors.background === '#05070A';
-  const primaryActionForeground = isDarkPalette ? '#05070A' : '#FAF8FF';
+  const isDarkPalette = colors.background === '#050606';
+  const primaryActionForeground = isDarkPalette ? '#050606' : '#FAF8FF';
 
   return (
     <View>
-      <View style={styles.homeHero}>
-        <View style={styles.homeHeroArtWrap}>
-          <AlbumArt colors={colors} radiusValue={12} size={210} track={heroTrack} />
-        </View>
-        <Text style={styles.homeHeroLabel}>RECENTLY PLAYED</Text>
-        <Text numberOfLines={1} style={styles.homeHeroTitle}>{heroTrack?.title ?? 'No music yet'}</Text>
-        <Text numberOfLines={1} style={styles.homeHeroArtist}>{heroTrack?.artist ?? 'Add local tracks to begin'}</Text>
-        <Pressable disabled={!tracks.length} onPress={onPlayAll} style={styles.homeHeroPlay}>
-          <Play color={primaryActionForeground} size={26} />
-        </Pressable>
-      </View>
-
       <View style={styles.statsGrid}>
         <Stat label="Tracks" value={tracks.length} styles={styles} />
         <Stat label="Albums" value={uniqueCount(tracks, 'album')} styles={styles} />
@@ -1052,19 +1058,19 @@ function HomeView({
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.homeActionsScroller}>
         <View style={styles.homeActions}>
           <Pressable disabled={!tracks.length} onPress={onPlayAll} style={[styles.homeActionChip, styles.homeActionChipPrimary]}>
-            <Play color={primaryActionForeground} size={20} />
+            <Play color={primaryActionForeground} size={16} />
             <Text style={styles.homeActionPrimaryText}>Play All</Text>
           </Pressable>
           <Pressable disabled={!tracks.length} onPress={onShuffle} style={styles.homeActionChip}>
-            <Shuffle color={colors.textPrimary} size={20} />
+            <Shuffle color={colors.textPrimary} size={16} />
             <Text style={styles.homeActionText}>Shuffle</Text>
           </Pressable>
           <Pressable onPress={onCreatePlaylist} style={styles.homeActionChip}>
-            <CirclePlus color={colors.textPrimary} size={20} />
+            <CirclePlus color={colors.textPrimary} size={16} />
             <Text style={styles.homeActionText}>New Mix</Text>
           </Pressable>
           <View style={styles.homeActionChip}>
-            <Heart color={colors.textPrimary} size={20} />
+            <Heart color={colors.textPrimary} size={16} />
             <Text style={styles.homeActionText}>{favoriteCount} Saved</Text>
           </View>
         </View>
@@ -1080,7 +1086,7 @@ function HomeView({
       {!playlists.length && <EmptyState styles={styles} text="No playlists yet." />}
       {playlists.slice(0, 3).map(playlist => (
         <Pressable key={playlist.id} onPress={() => onOpenPlaylist(playlist.id)} style={styles.playlistCompact}>
-          <FolderHeart color={colors.primary} size={24} />
+          <FolderHeart color={colors.primary} size={22} />
           <View style={styles.trackText}>
             <Text style={styles.playlistTitle}>{playlist.name}</Text>
             <Text style={styles.mutedText}>{playlist.trackIds.length} tracks</Text>
@@ -1141,43 +1147,52 @@ function LibraryView({
 
   return (
     <View>
-      <Text style={styles.pageTitle}>Library</Text>
-      <View style={styles.searchBox}>
-        <Search color="#8E839E" size={18} />
-        <TextInput
-          placeholder="Search tracks, artists, albums"
-          placeholderTextColor="#8E839E"
-          value={query}
-          onChangeText={setQuery}
-          style={styles.searchInput}
-        />
-      </View>
+      <PageHero
+        colors={colors}
+        icon={Library}
+        title="Library"
+        subtitle={`${tracks.length} tracks / ${uniqueCount(tracks, 'album')} albums / ${uniqueCount(tracks, 'artist')} artists`}
+        styles={styles}
+      />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScroller}>
-        {(['tracks', 'albums', 'artists', 'folders', 'favorites'] as LibraryTab[]).map(tab => (
-          <TabPill
-            active={libraryTab === tab}
-            key={tab}
-            label={tab}
-            onPress={() => setLibraryTab(tab)}
-            styles={styles}
+      <View style={styles.controlPanel}>
+        <View style={styles.searchBox}>
+          <Search color={colors.textMuted} size={18} />
+          <TextInput
+            placeholder="Search tracks, artists, albums"
+            placeholderTextColor={colors.textMuted}
+            value={query}
+            onChangeText={setQuery}
+            style={styles.searchInput}
           />
-        ))}
-      </ScrollView>
-
-      {libraryTab === 'tracks' && (
-        <View style={styles.segmented}>
-          {(['title', 'artist', 'recent'] as SortMode[]).map(mode => (
-            <Pressable
-              key={mode}
-              onPress={() => setSortMode(mode)}
-              style={[styles.segment, sortMode === mode && styles.segmentActive]}
-            >
-              <Text style={[styles.segmentText, sortMode === mode && styles.segmentTextActive]}>{mode}</Text>
-            </Pressable>
-          ))}
         </View>
-      )}
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScroller}>
+          {(['tracks', 'albums', 'artists', 'folders', 'favorites'] as LibraryTab[]).map(tab => (
+            <TabPill
+              active={libraryTab === tab}
+              key={tab}
+              label={tab}
+              onPress={() => setLibraryTab(tab)}
+              styles={styles}
+            />
+          ))}
+        </ScrollView>
+
+        {libraryTab === 'tracks' && (
+          <View style={styles.segmented}>
+            {(['title', 'artist', 'recent'] as SortMode[]).map(mode => (
+              <Pressable
+                key={mode}
+                onPress={() => setSortMode(mode)}
+                style={[styles.segment, sortMode === mode && styles.segmentActive]}
+              >
+                <Text style={[styles.segmentText, sortMode === mode && styles.segmentTextActive]}>{mode}</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+      </View>
 
       <SectionHeader action="Refresh" onAction={onRefresh} styles={styles} title={libraryTab === 'tracks' ? 'All Tracks' : libraryTab} />
       {isLoading && <Text style={styles.mutedText}>Syncing library...</Text>}
@@ -1208,12 +1223,14 @@ function LibraryView({
 }
 
 function FavoritesView({
+  colors,
   onPlayAll,
   onShuffle,
   renderTrack,
   styles,
   tracks,
 }: {
+  colors: TunifyColors;
   onPlayAll: () => void;
   onShuffle: () => void;
   renderTrack: (track: Track) => React.ReactNode;
@@ -1222,7 +1239,13 @@ function FavoritesView({
 }) {
   return (
     <View>
-      <Text style={styles.pageTitle}>Favorites</Text>
+      <PageHero
+        colors={colors}
+        icon={Heart}
+        title="Favorites"
+        subtitle={`${tracks.length} saved tracks ready for replay`}
+        styles={styles}
+      />
       <View style={styles.actionRow}>
         <PrimaryButton disabled={!tracks.length} icon={Play} label="Play All" onPress={onPlayAll} styles={styles} />
         <SecondaryButton disabled={!tracks.length} icon={Shuffle} label="Shuffle" onPress={onShuffle} styles={styles} />
@@ -1254,11 +1277,15 @@ function PlaylistsView({
 }) {
   return (
     <View>
-      <View style={styles.rowBetween}>
-        <Text style={styles.pageTitle}>Playlists</Text>
-        <Pressable onPress={onCreate} style={styles.circleButton}>
-          <CirclePlus color={colors.primary} size={24} />
-        </Pressable>
+      <PageHero
+        colors={colors}
+        icon={ListMusic}
+        title="Playlists"
+        subtitle={`${playlists.length} local mixes built from your library`}
+        styles={styles}
+      />
+      <View style={styles.actionRow}>
+        <PrimaryButton icon={CirclePlus} label="Create Mix" onPress={onCreate} styles={styles} />
       </View>
       {!playlists.length && <EmptyState styles={styles} text="Create a playlist for your local tracks." />}
       {playlists.map(playlist => {
@@ -1291,7 +1318,6 @@ function PlaylistDetailView({
   onBack,
   onDelete,
   onPlayTrack,
-  onRemoveTrack,
   onRename,
   onShuffle,
   playlist,
@@ -1304,12 +1330,11 @@ function PlaylistDetailView({
   onBack: () => void;
   onDelete: (playlist: Playlist) => void;
   onPlayTrack: (track: Track, queue?: Track[]) => Promise<void>;
-  onRemoveTrack: (playlistId: string, trackId: string) => Promise<void>;
   onRename: (playlist: Playlist) => void;
   onShuffle: (playlistTracks: Track[]) => void;
   playlist?: Playlist;
   playlistTracks: Track[];
-  renderTrack: (track: Track, sourceQueue?: Track[]) => React.ReactNode;
+  renderTrack: (track: Track, sourceQueue?: Track[], playlist?: Playlist) => React.ReactNode;
   styles: ReturnType<typeof createStyles>;
 }) {
   if (!playlist) {
@@ -1327,13 +1352,13 @@ function PlaylistDetailView({
         <ChevronDown color={colors.textMuted} size={20} />
         <Text style={styles.backText}>Playlists</Text>
       </Pressable>
-      <View style={styles.rowBetween}>
-        <View style={styles.trackText}>
-          <Text numberOfLines={2} style={styles.pageTitle}>{playlist.name}</Text>
-          <Text style={styles.mutedText}>{playlistTracks.length} tracks</Text>
-        </View>
-        <FolderHeart color={colors.primary} size={34} />
-      </View>
+      <PageHero
+        colors={colors}
+        icon={FolderHeart}
+        title={playlist.name}
+        subtitle={`${playlistTracks.length} tracks in this local mix`}
+        styles={styles}
+      />
       <View style={styles.actionRow}>
         <PrimaryButton disabled={!playlistTracks.length} icon={Play} label="Play" onPress={() => playlistTracks[0] && onPlayTrack(playlistTracks[0], playlistTracks)} styles={styles} />
         <SecondaryButton disabled={!playlistTracks.length} icon={Shuffle} label="Shuffle" onPress={() => onShuffle(playlistTracks)} styles={styles} />
@@ -1345,13 +1370,7 @@ function PlaylistDetailView({
       </View>
       {!playlistTracks.length && <EmptyState styles={styles} text="No tracks in this playlist." />}
       {playlistTracks.map(track => (
-        <View key={track.id}>
-          {renderTrack(track, playlistTracks)}
-          <Pressable onPress={() => onRemoveTrack(playlist.id, track.id)} style={styles.inlineRemove}>
-            <Trash2 color={colors.danger} size={16} />
-            <Text style={styles.removeText}>Remove from playlist</Text>
-          </Pressable>
-        </View>
+        renderTrack(track, playlistTracks, playlist)
       ))}
     </View>
   );
@@ -1400,7 +1419,13 @@ function SettingsView({
 }) {
   return (
     <View>
-      <Text style={styles.pageTitle}>Settings</Text>
+      <PageHero
+        colors={colors}
+        icon={Settings}
+        title="Settings"
+        subtitle={`Audio: ${audioPermission} / Discord: ${discordStatus}`}
+        styles={styles}
+      />
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>Appearance</Text>
         <View style={styles.segmented}>
@@ -1514,34 +1539,143 @@ function NowPlayingScreen({
   styles: ReturnType<typeof createStyles>;
   track?: Track;
 }) {
-  const playIconColor = isDark ? '#05070A' : '#FAF8FF';
+  const playIconColor = isDark ? '#050606' : '#FAF8FF';
+  const artworkGlowPreset = useMemo<PresetConfig>(
+    () => ({
+      metadata: {
+        name: 'Tunify artwork glow',
+        textColor: colors.textPrimary,
+        category: 'Tunify',
+        tags: ['artwork', 'soft'],
+      },
+      states: [
+        {
+          name: 'default',
+          preset: {
+            animationSpeed: 0.08,
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            cornerRadius: 32,
+            outlineWidth: 0,
+            glowLayers: [
+              {
+                colors: isDark ? ['#FFFFFF', '#B8B8B8', '#FFFFFF'] : ['#151515', '#9A9A9A', '#FFFFFF'],
+                coverage: 1,
+                glowPlacement: 'behind',
+                glowSize: [12, 14, 13, 12],
+                opacity: isDark ? 0.07 : 0.08,
+                speedMultiplier: 0.08,
+              },
+              {
+                colors: isDark ? ['#5A5A5A', '#FFFFFF', '#2A2A2A'] : ['#D8D8D8', '#FFFFFF', '#7A7A7A'],
+                coverage: 1,
+                glowPlacement: 'behind',
+                glowSize: [22, 26, 24, 22],
+                opacity: isDark ? 0.025 : 0.045,
+                speedMultiplier: 0.04,
+              },
+            ],
+          },
+        },
+        {
+          name: 'press',
+          transition: 420,
+          preset: {
+            glowLayers: [
+              { glowSize: [16, 20, 18, 16], opacity: isDark ? 0.1 : 0.1 },
+              { glowSize: [26, 30, 28, 26], opacity: isDark ? 0.035 : 0.06 },
+            ],
+          },
+        },
+      ],
+    }),
+    [colors.textPrimary, isDark],
+  );
+  const playButtonGlowPreset = useMemo<PresetConfig>(
+    () => ({
+      metadata: {
+        name: 'Tunify play glow',
+        textColor: playIconColor,
+        category: 'Tunify',
+        tags: ['playback', 'soft'],
+      },
+      states: [
+        {
+          name: 'default',
+          preset: {
+            animationSpeed: 0.12,
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            cornerRadius: 40,
+            outlineWidth: 0,
+            glowLayers: [
+              {
+                colors: isDark ? ['#FFFFFF', '#D8D8D8', '#FFFFFF'] : ['#111827', '#5A5A5A', '#111827'],
+                coverage: 1,
+                glowPlacement: 'behind',
+                glowSize: [12, 14, 12, 14],
+                opacity: isDark ? 0.2 : 0.1,
+                speedMultiplier: 0.1,
+              },
+              {
+                colors: isDark ? ['#FFFFFF', '#6B6B6B', '#FFFFFF'] : ['#9A9A9A', '#111827', '#5A5A5A'],
+                coverage: 1,
+                glowPlacement: 'behind',
+                glowSize: [18, 21, 18, 21],
+                opacity: isDark ? 0.055 : 0.035,
+                speedMultiplier: 0.05,
+              },
+            ],
+          },
+        },
+        {
+          name: 'press',
+          transition: 260,
+          preset: {
+            glowLayers: [
+              { glowSize: [15, 18, 15, 18], opacity: isDark ? 0.28 : 0.14 },
+              { glowSize: [22, 26, 22, 26], opacity: isDark ? 0.075 : 0.05 },
+            ],
+          },
+        },
+      ],
+    }),
+    [isDark, playIconColor],
+  );
 
   return (
     <View style={[styles.nowPlayingScreen, isDark && styles.nowPlayingDark]}>
       <View style={styles.nowHeader}>
         <Pressable onPress={onBack} style={styles.headerButton}>
-          <ChevronDown color={colors.icon} size={28} />
+          <ChevronDown color={colors.icon} size={22} strokeWidth={3} />
         </Pressable>
         <Text style={styles.nowHeaderTitle}>Now Playing</Text>
         <Pressable onPress={onOpenQueue} style={styles.headerButton}>
-          <ListMusic color={colors.icon} size={24} />
+          <ListMusic color={colors.icon} size={21} strokeWidth={3} />
         </Pressable>
       </View>
 
       <View style={styles.nowBody}>
         <View style={styles.nowArtworkShell}>
-          <AlbumArt colors={colors} radiusValue={32} size={300} track={track} />
+          <AnimatedGlow
+            activeState={isPlaying ? 'press' : 'default'}
+            preset={artworkGlowPreset}
+            style={styles.nowArtworkGlow}
+            wrapperStyle={styles.nowArtworkGlowWrapper}
+          >
+            <AlbumArt colors={colors} radiusValue={26} size={270} track={track} />
+          </AnimatedGlow>
         </View>
         <View style={styles.nowInfoRow}>
           <Pressable onPress={onFavorite} style={styles.favoriteBig}>
-            <Heart color={colors.textSecondary} fill={isFavorite ? colors.textSecondary : 'transparent'} size={24} />
+            <Heart color={colors.textSecondary} fill={isFavorite ? colors.textSecondary : 'transparent'} size={22} strokeWidth={2.6} />
           </Pressable>
           <View style={styles.nowTitleWrap}>
             <Text numberOfLines={1} style={styles.nowTitle}>{track?.title ?? 'No track selected'}</Text>
             <Text numberOfLines={1} style={styles.nowArtist}>{track?.artist ?? 'Unknown Artist'}</Text>
           </View>
           <Pressable onPress={onLyrics} style={styles.favoriteBig}>
-            <MoreVertical color={colors.textSecondary} size={24} />
+            <MoreHorizontal color={colors.textSecondary} size={23} strokeWidth={3} />
           </Pressable>
         </View>
         <ProgressBar
@@ -1554,19 +1688,28 @@ function NowPlayingScreen({
         />
         <View style={styles.controlsRow}>
           <Pressable onPress={onShuffle} style={styles.controlButton}>
-            <Shuffle color={shuffleEnabled ? colors.primary : colors.textSecondary} size={24} />
+            <Shuffle color={shuffleEnabled ? colors.primary : colors.textSecondary} size={18} strokeWidth={2.7} />
           </Pressable>
           <Pressable onPress={onPrevious} style={styles.controlButtonLarge}>
-            <SkipBack color={colors.textPrimary} size={36} />
+            <SkipBack color={colors.textPrimary} size={24} strokeWidth={2.35} />
           </Pressable>
-          <Pressable onPress={isPlaying ? onPause : onPlay} style={styles.playButtonHuge}>
-            {isPlaying ? <Pause color={playIconColor} size={40} /> : <Play color={playIconColor} size={40} />}
-          </Pressable>
+          <View style={styles.playButtonShell}>
+            <AnimatedGlow
+              activeState={isPlaying ? 'press' : 'default'}
+              preset={playButtonGlowPreset}
+              style={styles.playButtonGlow}
+              wrapperStyle={styles.playButtonGlowWrapper}
+            >
+              <Pressable onPress={isPlaying ? onPause : onPlay} style={styles.playButtonHuge}>
+                {isPlaying ? <PauseGlyph color={playIconColor} size={26} /> : <PlayGlyph color={playIconColor} size={26} />}
+              </Pressable>
+            </AnimatedGlow>
+          </View>
           <Pressable onPress={onNext} style={styles.controlButtonLarge}>
-            <SkipForward color={colors.textPrimary} size={36} />
+            <SkipForward color={colors.textPrimary} size={24} strokeWidth={2.35} />
           </Pressable>
           <Pressable onPress={onRepeat} style={styles.controlButton}>
-            <Repeat color={repeatMode === RepeatMode.Off ? colors.textSecondary : colors.primary} size={24} />
+            <Repeat color={repeatMode === RepeatMode.Off ? colors.textSecondary : colors.primary} size={18} strokeWidth={2.7} />
           </Pressable>
         </View>
       </View>
@@ -1576,49 +1719,73 @@ function NowPlayingScreen({
 
 function MiniPlayer({
   colors,
-  duration,
   isFavorite,
   isPlaying,
   onFavorite,
   onOpen,
   onPause,
   onPlay,
-  position,
   styles,
   track,
 }: {
   colors: TunifyColors;
-  duration: number;
   isFavorite: boolean;
   isPlaying: boolean;
   onFavorite: () => void;
   onOpen: () => void;
   onPause: () => void;
   onPlay: () => void;
-  position: number;
   styles: ReturnType<typeof createStyles>;
   track: Track;
 }) {
-  const progress = (duration > 0 ? `${clamp(position / duration) * 100}%` : '0%') as DimensionValue;
-  const isDarkPalette = colors.background === '#05070A';
-  const miniForeground = isDarkPalette ? '#05070A' : '#FFFFFF';
-  const miniPlayIcon = isDarkPalette ? '#FFFFFF' : '#05070A';
+  const isDarkPalette = colors.background === '#050606';
+  const miniForeground = isDarkPalette ? '#050606' : '#FFFFFF';
+  const miniPlayIcon = isDarkPalette ? '#FFFFFF' : '#050606';
 
   return (
     <Pressable onPress={onOpen} style={styles.miniPlayer}>
-      <AlbumArt colors={colors} size={52} track={track} />
+      <AlbumArt colors={colors} size={56} track={track} />
       <View style={styles.miniInfo}>
         <Text numberOfLines={1} style={styles.miniTitle}>{track.title}</Text>
         <Text numberOfLines={1} style={styles.miniArtist}>{track.artist ?? 'Unknown Artist'}</Text>
-        <View style={styles.progressTrack}><View style={[styles.progressFill, { width: progress }]} /></View>
       </View>
       <Pressable onPress={onFavorite} style={styles.trackIconButton}>
-        <Heart color={miniForeground} fill={isFavorite ? miniForeground : 'transparent'} size={24} />
+        <Heart color={miniForeground} fill={isFavorite ? miniForeground : 'transparent'} size={24} strokeWidth={2.5} />
       </Pressable>
       <Pressable onPress={isPlaying ? onPause : onPlay} style={styles.miniButton}>
-        {isPlaying ? <Pause color={miniPlayIcon} size={24} /> : <Play color={miniPlayIcon} size={24} />}
+        {isPlaying ? <PauseGlyph color={miniPlayIcon} size={22} /> : <PlayGlyph color={miniPlayIcon} size={22} />}
       </Pressable>
     </Pressable>
+  );
+}
+
+function PlayGlyph({ color, size }: { color: string; size: number }) {
+  return (
+    <View
+      style={{
+        borderBottomColor: 'transparent',
+        borderBottomWidth: size * 0.34,
+        borderLeftColor: color,
+        borderLeftWidth: size * 0.52,
+        borderTopColor: 'transparent',
+        borderTopWidth: size * 0.34,
+        height: 0,
+        marginLeft: size * 0.08,
+        width: 0,
+      }}
+    />
+  );
+}
+
+function PauseGlyph({ color, size }: { color: string; size: number }) {
+  const barWidth = Math.max(5, size * 0.18);
+  const barHeight = size * 0.72;
+
+  return (
+    <View style={{ alignItems: 'center', flexDirection: 'row', gap: size * 0.14, justifyContent: 'center' }}>
+      <View style={{ backgroundColor: color, borderRadius: barWidth, height: barHeight, width: barWidth }} />
+      <View style={{ backgroundColor: color, borderRadius: barWidth, height: barHeight, width: barWidth }} />
+    </View>
   );
 }
 
@@ -1679,6 +1846,15 @@ function TrackRow({
 }) {
   return (
     <Pressable onPress={onPress} style={[styles.trackRow, isPlaying && styles.trackRowActive]}>
+      <View style={styles.trackSignalSlot}>
+        {isPlaying && (
+          <View style={styles.trackSignalBars}>
+            <View style={[styles.trackSignalBar, styles.trackSignalBarShort]} />
+            <View style={[styles.trackSignalBar, styles.trackSignalBarTall]} />
+            <View style={[styles.trackSignalBar, styles.trackSignalBarMid]} />
+          </View>
+        )}
+      </View>
       <AlbumArt colors={colors} size={54} track={track} />
       <View style={styles.trackText}>
         <Text numberOfLines={1} style={styles.trackTitle}>{track.title}</Text>
@@ -1711,7 +1887,7 @@ function GroupPanel({
     <View style={styles.groupPanel}>
       <View style={styles.rowBetween}>
         <View style={styles.groupTitleRow}>
-          <Icon color={colors.primary} size={24} />
+          <Icon color={colors.primary} size={22} />
           <View style={styles.trackText}>
             <Text numberOfLines={1} style={styles.playlistTitle}>{group.title}</Text>
             <Text style={styles.mutedText}>{group.subtitle}</Text>
@@ -1821,6 +1997,7 @@ function AddTracksToPlaylistModal({
 }
 
 function PlaylistNameModal({
+  colors,
   error,
   onClose,
   onSubmit,
@@ -1830,6 +2007,7 @@ function PlaylistNameModal({
   title,
   visible,
 }: {
+  colors: TunifyColors;
   error?: string;
   onClose: () => void;
   onSubmit: () => void;
@@ -1847,7 +2025,7 @@ function PlaylistNameModal({
           <TextInput
             maxLength={40}
             placeholder="Playlist name"
-            placeholderTextColor="#8E839E"
+            placeholderTextColor={colors.textMuted}
             value={playlistName}
             onChangeText={setPlaylistName}
             style={styles.modalInput}
@@ -1868,8 +2046,10 @@ function TrackMoreMenu({
   onClose,
   onPlayNext,
   onPlayNow,
+  onRemoveFromPlaylist,
   onToggleFavorite,
   onViewDetails,
+  playlist,
   styles,
   track,
 }: {
@@ -1880,8 +2060,10 @@ function TrackMoreMenu({
   onClose: () => void;
   onPlayNext: (track: Track) => void;
   onPlayNow: (track: Track) => void;
+  onRemoveFromPlaylist: (playlist: Playlist, track: Track) => void | Promise<void>;
   onToggleFavorite: (track: Track) => void;
   onViewDetails: (track: Track) => void;
+  playlist?: Playlist;
   styles: ReturnType<typeof createStyles>;
   track?: Track;
 }) {
@@ -1892,6 +2074,16 @@ function TrackMoreMenu({
         { label: 'Add to Queue', icon: ListPlus, onPress: () => onAddToQueue(track) },
         { label: 'Add to Playlist', icon: CirclePlus, onPress: () => onAddToPlaylist(track) },
         { label: isFavorite ? 'Remove Favorite' : 'Add Favorite', icon: Heart, onPress: () => onToggleFavorite(track) },
+        ...(playlist
+          ? [
+              {
+                danger: true,
+                label: 'Remove from Playlist',
+                icon: Trash2,
+                onPress: () => onRemoveFromPlaylist(playlist, track),
+              },
+            ]
+          : []),
         { label: 'View Details', icon: Info, onPress: () => onViewDetails(track) },
       ]
     : [];
@@ -1905,8 +2097,8 @@ function TrackMoreMenu({
             const Icon = action.icon;
             return (
               <Pressable key={action.label} onPress={action.onPress} style={styles.modalRow}>
-                <Icon color={colors.primary} size={22} />
-                <Text style={styles.modalRowText}>{action.label}</Text>
+                <Icon color={action.danger ? colors.danger : colors.primary} size={22} />
+                <Text style={[styles.modalRowText, action.danger && styles.modalDangerText]}>{action.label}</Text>
               </Pressable>
             );
           })}
@@ -2064,32 +2256,51 @@ function ProgressBar({
   styles: ReturnType<typeof createStyles>;
 }) {
   const [width, setWidth] = useState(1);
-  const progress = duration > 0 ? clamp(position / duration) : 0;
+  const [dragPosition, setDragPosition] = useState<number | undefined>();
+  const displayPosition = dragPosition ?? position;
+  const progress = duration > 0 ? clamp(displayPosition / duration) : 0;
   const progressWidth = `${progress * 100}%` as DimensionValue;
 
-  const seek = (event: GestureResponderEvent) => {
+  const previewSeek = (event: GestureResponderEvent) => {
     if (!duration) {
-      return;
+      return 0;
     }
 
     const fraction = clamp(event.nativeEvent.locationX / width);
-    onSeek(duration * fraction);
+    const nextPosition = duration * fraction;
+    setDragPosition(nextPosition);
+    return nextPosition;
+  };
+
+  const commitSeek = (event: GestureResponderEvent) => {
+    const nextPosition = previewSeek(event);
+    setDragPosition(undefined);
+    onSeek(nextPosition);
   };
 
   return (
     <View style={styles.progressShell}>
-      <Pressable
+      <View
         onLayout={event => setWidth(event.nativeEvent.layout.width || 1)}
-        onPress={seek}
-        style={styles.progressBar}
+        onMoveShouldSetResponder={() => true}
+        onResponderGrant={previewSeek}
+        onResponderMove={previewSeek}
+        onResponderRelease={commitSeek}
+        onResponderTerminate={() => {
+          setDragPosition(undefined);
+        }}
+        onStartShouldSetResponder={() => true}
+        style={styles.progressTouchArea}
       >
-        <View style={[styles.progressBarFill, { backgroundColor: colors.textPrimary, width: progressWidth }]} />
-        <View style={[styles.progressThumb, { left: progressWidth }]} />
-      </Pressable>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressBarFill, { backgroundColor: colors.textPrimary, width: progressWidth }]} />
+          <View style={[styles.progressThumb, { left: progressWidth }]} />
+        </View>
+      </View>
       {showTimes && (
         <View style={styles.rowBetween}>
-          <Text style={styles.progressTime}>{formatDuration(position)}</Text>
-          <Text style={styles.progressTime}>-{formatDuration(Math.max(duration - position, 0))}</Text>
+          <Text style={styles.progressTime}>{formatDuration(displayPosition)}</Text>
+          <Text style={styles.progressTime}>-{formatDuration(Math.max(duration - displayPosition, 0))}</Text>
         </View>
       )}
     </View>
@@ -2148,6 +2359,32 @@ function DangerButton({
   );
 }
 
+function PageHero({
+  colors,
+  icon: Icon,
+  subtitle,
+  styles,
+  title,
+}: {
+  colors: TunifyColors;
+  icon: IconType;
+  subtitle: string;
+  styles: ReturnType<typeof createStyles>;
+  title: string;
+}) {
+  return (
+    <View style={styles.pageHero}>
+      <View style={styles.pageHeroIcon}>
+        <Icon color={colors.textPrimary} size={22} />
+      </View>
+      <View style={styles.pageHeroText}>
+        <Text numberOfLines={2} style={styles.pageHeroTitle}>{title}</Text>
+        <Text numberOfLines={2} style={styles.pageHeroSubtitle}>{subtitle}</Text>
+      </View>
+    </View>
+  );
+}
+
 function SectionHeader({
   action,
   onAction,
@@ -2179,7 +2416,7 @@ function Stat({ label, value, styles }: { label: string; value: number; styles: 
 function EmptyState({ styles, text }: { styles: ReturnType<typeof createStyles>; text: string }) {
   return (
     <View style={styles.emptyState}>
-      <Music color="#8E839E" size={34} />
+      <Music color="#9A9A9A" size={30} />
       <Text style={styles.mutedText}>{text}</Text>
     </View>
   );
@@ -2212,18 +2449,21 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     scaffold: {
       flex: 1,
     },
+    routeTransition: {
+      flex: 1,
+    },
     scrollContent: {
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.xl,
-      paddingBottom: 196,
+      paddingTop: spacing.lg,
+      paddingBottom: 228,
     },
     header: {
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      minHeight: 76,
+      minHeight: 72,
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.lg,
+      paddingTop: spacing.md,
     },
     nowHeader: {
       alignItems: 'center',
@@ -2236,9 +2476,9 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     headerButton: {
       alignItems: 'center',
       borderRadius: radius.pill,
-      height: 46,
+      height: 40,
       justifyContent: 'center',
-      width: 46,
+      width: 40,
     },
     headerCopy: {
       flex: 1,
@@ -2268,14 +2508,14 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     headerTitle: {
       color: colors.textPrimary,
       fontFamily: typography.fontFamily.semiBold,
-      fontSize: 21,
+      fontSize: 20,
       fontWeight: '700',
       lineHeight: 28,
     },
     headerSubtitle: {
       color: colors.textSecondary,
       fontFamily: typography.fontFamily.medium,
-      fontSize: 19,
+      fontSize: 18,
       fontWeight: '500',
       lineHeight: 26,
     },
@@ -2287,25 +2527,81 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       lineHeight: 40,
       marginBottom: spacing.lg,
     },
+    pageHero: {
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderColor: 'transparent',
+      borderRadius: 24,
+      borderWidth: 0,
+      flexDirection: 'row',
+      gap: spacing.md,
+      marginBottom: spacing.lg,
+      padding: spacing.md,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: isDark ? 0.1 : 0.07,
+      shadowRadius: 18,
+    },
+    pageHeroIcon: {
+      alignItems: 'center',
+      backgroundColor: colors.surfaceSoft,
+      borderColor: 'transparent',
+      borderRadius: radius.pill,
+      borderWidth: 0,
+      height: 50,
+      justifyContent: 'center',
+      width: 50,
+    },
+    pageHeroText: {
+      flex: 1,
+      minWidth: 0,
+    },
+    pageHeroTitle: {
+      color: colors.textPrimary,
+      fontFamily: typography.fontFamily.bold,
+      fontSize: 24,
+      fontWeight: '700',
+      lineHeight: 30,
+    },
+    pageHeroSubtitle: {
+      color: colors.textMuted,
+      fontFamily: typography.fontFamily.medium,
+      fontSize: 14,
+      fontWeight: '500',
+      lineHeight: 20,
+      marginTop: spacing.xs,
+    },
+    controlPanel: {
+      backgroundColor: colors.surface,
+      borderColor: 'transparent',
+      borderRadius: 22,
+      borderWidth: 0,
+      marginBottom: spacing.lg,
+      padding: spacing.base,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: isDark ? 0.08 : 0.06,
+      shadowRadius: 16,
+    },
     actionRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: spacing.md,
-      marginBottom: spacing.lg,
+      gap: spacing.sm,
+      marginBottom: spacing.md,
     },
     homeHero: {
       alignItems: 'center',
-      backgroundColor: isDark ? '#0F172A' : '#E9EEF6',
-      borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#DCE3EE',
+      backgroundColor: colors.surface,
+      borderColor: 'transparent',
       borderRadius: 24,
-      borderWidth: 1,
-      marginBottom: spacing.xl,
+      borderWidth: 0,
+      marginBottom: spacing.lg,
       paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.xxl,
-      shadowColor: isDark ? '#E0F2FE' : '#B7C9D5',
-      shadowOffset: { width: 0, height: 18 },
-      shadowOpacity: isDark ? 0.14 : 0.24,
-      shadowRadius: 30,
+      paddingVertical: spacing.xl,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: isDark ? 0.1 : 0.08,
+      shadowRadius: 20,
     },
     homeHeroArtWrap: {
       borderRadius: 14,
@@ -2346,14 +2642,14 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       alignItems: 'center',
       backgroundColor: isDark ? '#FFFFFF' : '#1B1C1C',
       borderRadius: radius.pill,
-      height: 80,
+      height: 64,
       justifyContent: 'center',
-      marginTop: spacing.xxl,
-      shadowColor: isDark ? '#B7C9D5' : '#1B1C1C',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: isDark ? 0.34 : 0.18,
-      shadowRadius: 22,
-      width: 80,
+      marginTop: spacing.xl,
+      shadowColor: isDark ? '#FFFFFF' : '#1B1C1C',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: isDark ? 0.18 : 0.14,
+      shadowRadius: 18,
+      width: 64,
     },
     homeActionsScroller: {
       marginBottom: spacing.xl,
@@ -2361,7 +2657,7 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     homeActions: {
       flexDirection: 'row',
-      gap: spacing.md,
+      gap: spacing.sm,
       paddingRight: spacing.lg,
     },
     homeActionChip: {
@@ -2369,74 +2665,76 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       backgroundColor: colors.surface,
       borderColor: colors.divider,
       borderRadius: radius.pill,
-      borderWidth: 1,
+      borderWidth: 0,
       flexDirection: 'row',
-      gap: spacing.sm,
-      minHeight: 58,
-      paddingHorizontal: spacing.lg,
+      gap: spacing.xs,
+      minHeight: 44,
+      paddingHorizontal: spacing.base,
     },
     homeActionChipPrimary: {
       backgroundColor: isDark ? '#FFFFFF' : '#1B1C1C',
       borderColor: isDark ? '#FFFFFF' : '#1B1C1C',
       shadowColor: isDark ? '#FFFFFF' : '#1B1C1C',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.12,
-      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: isDark ? 0.12 : 0.1,
+      shadowRadius: 14,
     },
     homeActionText: {
       color: colors.textPrimary,
       fontFamily: typography.fontFamily.semiBold,
-      fontSize: 16,
+      fontSize: 13,
       fontWeight: '700',
     },
     homeActionPrimaryText: {
-      color: isDark ? '#05070A' : '#FAF8FF',
+      color: isDark ? '#050606' : '#FAF8FF',
       fontFamily: typography.fontFamily.semiBold,
-      fontSize: 16,
+      fontSize: 13,
       fontWeight: '700',
     },
     statsGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: spacing.md,
-      marginBottom: spacing.xl,
+      gap: spacing.sm,
+      marginBottom: spacing.lg,
     },
     stat: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
       borderColor: colors.divider,
-      borderWidth: 1,
+      borderWidth: 0,
       flexBasis: '48%',
       flexGrow: 1,
-      minHeight: 108,
-      padding: spacing.lg,
+      minHeight: 72,
+      padding: spacing.md,
     },
     statValue: {
       color: colors.textPrimary,
       fontFamily: typography.fontFamily.medium,
-      fontSize: 22,
+      fontSize: 15,
       fontWeight: '500',
+      lineHeight: 20,
       textAlign: 'center',
     },
     statLabel: {
       color: colors.textSecondary,
       fontFamily: typography.fontFamily.medium,
-      fontSize: 18,
+      fontSize: 11,
       fontWeight: '500',
-      marginTop: spacing.sm,
+      lineHeight: 15,
+      marginTop: 3,
       textAlign: 'center',
       textTransform: 'uppercase',
     },
     shortcutRow: {
       flexDirection: 'row',
-      gap: spacing.md,
-      marginBottom: spacing.xl,
+      gap: spacing.sm,
+      marginBottom: spacing.lg,
     },
     shortcutCard: {
       backgroundColor: colors.surface,
-      borderRadius: radius.lg,
+      borderRadius: radius.md,
       flex: 1,
-      minHeight: 112,
+      minHeight: 92,
       padding: spacing.base,
     },
     shortcutLabel: {
@@ -2457,13 +2755,13 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: spacing.md,
-      marginTop: spacing.xl,
+      marginBottom: spacing.sm,
+      marginTop: spacing.lg,
     },
     sectionTitle: {
       color: colors.textPrimary,
       fontFamily: typography.fontFamily.semiBold,
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: '700',
       textTransform: 'capitalize',
     },
@@ -2475,19 +2773,48 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     trackRow: {
       alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderColor: 'transparent',
+      backgroundColor: isDark ? 'transparent' : colors.surface,
+      borderColor: isDark ? 'rgba(255,255,255,0.04)' : colors.divider,
       borderRadius: radius.md,
-      borderWidth: 1,
+      borderWidth: 0,
       flexDirection: 'row',
-      gap: spacing.md,
+      gap: spacing.sm,
       marginBottom: spacing.sm,
-      minHeight: 78,
-      padding: spacing.md,
+      minHeight: 70,
+      padding: spacing.sm,
     },
     trackRowActive: {
-      backgroundColor: isDark ? '#1D232D' : '#EEF2F8',
-      borderColor: colors.divider,
+      backgroundColor: isDark ? '#1C1D1D' : '#EEF2F8',
+      borderColor: 'transparent',
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: isDark ? 0.22 : 0.12,
+      shadowRadius: 14,
+    },
+    trackSignalSlot: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 16,
+    },
+    trackSignalBars: {
+      alignItems: 'flex-end',
+      flexDirection: 'row',
+      gap: 3,
+      height: 20,
+    },
+    trackSignalBar: {
+      backgroundColor: colors.textPrimary,
+      borderRadius: radius.pill,
+      width: 4,
+    },
+    trackSignalBarShort: {
+      height: 10,
+    },
+    trackSignalBarTall: {
+      height: 20,
+    },
+    trackSignalBarMid: {
+      height: 15,
     },
     trackText: {
       flex: 1,
@@ -2520,14 +2847,14 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     searchBox: {
       alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderColor: colors.divider,
-      borderWidth: 1,
+      backgroundColor: colors.surfaceSoft,
+      borderColor: 'transparent',
+      borderWidth: 0,
       borderRadius: radius.pill,
       flexDirection: 'row',
       gap: spacing.sm,
-      marginBottom: spacing.lg,
-      minHeight: 50,
+      marginBottom: spacing.md,
+      minHeight: 46,
       paddingHorizontal: spacing.base,
     },
     searchInput: {
@@ -2541,13 +2868,13 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       marginBottom: spacing.md,
     },
     tabPill: {
-      backgroundColor: colors.surface,
-      borderColor: colors.divider,
-      borderWidth: 1,
+      backgroundColor: colors.surfaceSoft,
+      borderColor: 'transparent',
+      borderWidth: 0,
       borderRadius: radius.pill,
       marginRight: spacing.sm,
-      paddingHorizontal: spacing.base,
-      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 8,
     },
     tabPillActive: {
       backgroundColor: isDark ? '#FFFFFF' : '#1B1C1C',
@@ -2561,7 +2888,7 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       textTransform: 'capitalize',
     },
     tabPillTextActive: {
-      color: isDark ? '#05070A' : '#FAF8FF',
+      color: isDark ? '#050606' : '#FAF8FF',
     },
     mutedText: {
       color: colors.textMuted,
@@ -2579,97 +2906,95 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     emptyState: {
       alignItems: 'center',
       backgroundColor: colors.surface,
-      borderRadius: radius.lg,
-      gap: spacing.md,
+      borderColor: 'transparent',
+      borderRadius: 22,
+      borderWidth: 0,
+      gap: spacing.sm,
       justifyContent: 'center',
-      minHeight: 126,
-      padding: spacing.lg,
+      minHeight: 104,
+      padding: spacing.md,
     },
     miniPlayer: {
       alignItems: 'center',
-      backgroundColor: isDark ? '#FFFFFF' : '#05070A',
-      borderColor: isDark ? '#FFFFFF' : '#222530',
-      borderRadius: 24,
-      borderWidth: 1,
-      bottom: 84,
+      backgroundColor: isDark ? '#FFFFFF' : '#050606',
+      borderRadius: 28,
+      bottom: 112,
       flexDirection: 'row',
       gap: spacing.md,
       left: spacing.lg,
-      minHeight: 82,
+      minHeight: 84,
       paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
+      paddingVertical: 10,
       position: 'absolute',
       right: spacing.lg,
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 12 },
-      shadowOpacity: 0.26,
-      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 14 },
+      shadowOpacity: isDark ? 0.18 : 0.24,
+      shadowRadius: 18,
+      elevation: 8,
+      zIndex: 10,
     },
     miniInfo: {
       flex: 1,
+      justifyContent: 'center',
       minWidth: 0,
     },
     miniTitle: {
-      color: isDark ? '#05070A' : '#FFFFFF',
-      fontFamily: typography.fontFamily.semiBold,
-      fontSize: 17,
+      color: isDark ? '#050606' : '#FFFFFF',
+      fontFamily: typography.fontFamily.bold,
+      fontSize: 16,
       fontWeight: '700',
+      lineHeight: 22,
     },
     miniArtist: {
-      color: isDark ? '#566771' : '#D4C0D7',
+      color: isDark ? '#666666' : '#D8D8D8',
       fontFamily: typography.fontFamily.medium,
-      fontSize: 14,
+      fontSize: 12,
       fontWeight: '500',
+      lineHeight: 18,
       marginTop: 2,
-      marginBottom: spacing.sm,
     },
     miniButton: {
       alignItems: 'center',
-      backgroundColor: isDark ? '#05070A' : '#FFFFFF',
+      backgroundColor: isDark ? '#050606' : '#FFFFFF',
       borderRadius: radius.pill,
-      height: 46,
+      height: 52,
       justifyContent: 'center',
-      width: 46,
-    },
-    progressTrack: {
-      backgroundColor: isDark ? '#D8DDE5' : '#32343E',
-      borderRadius: radius.pill,
-      height: 4,
-      overflow: 'hidden',
-    },
-    progressFill: {
-      backgroundColor: isDark ? '#05070A' : '#FFFFFF',
-      borderRadius: radius.pill,
-      height: 4,
+      width: 52,
     },
     bottomNav: {
       alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderColor: colors.divider,
-      borderRadius: 24,
-      borderWidth: 1,
-      bottom: spacing.md,
+      backgroundColor: isDark ? '#0B0C0C' : '#FFFFFF',
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      bottom: 0,
       flexDirection: 'row',
       justifyContent: 'space-around',
       left: 0,
-      minHeight: 78,
+      minHeight: 96,
+      paddingBottom: spacing.md,
+      paddingHorizontal: spacing.sm,
+      paddingTop: spacing.sm,
       position: 'absolute',
       right: 0,
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.18,
-      shadowRadius: 24,
+      shadowOffset: { width: 0, height: -10 },
+      shadowOpacity: isDark ? 0.3 : 0.12,
+      shadowRadius: 22,
+      elevation: 16,
+      zIndex: 20,
     },
     navItem: {
       alignItems: 'center',
+      flex: 1,
       minWidth: 62,
     },
     navLabel: {
       color: colors.textMuted,
       fontFamily: typography.fontFamily.medium,
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '500',
-      marginTop: 2,
+      marginTop: spacing.xs,
     },
     navLabelActive: {
       color: colors.textPrimary,
@@ -2683,8 +3008,10 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     permissionCard: {
       alignItems: 'center',
       backgroundColor: colors.surface,
-      borderRadius: radius.xl,
-      padding: spacing.xl,
+      borderColor: 'transparent',
+      borderRadius: 24,
+      borderWidth: 0,
+      padding: spacing.lg,
       width: '100%',
     },
     permissionTitle: {
@@ -2716,35 +3043,43 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     circleButton: {
       alignItems: 'center',
-      backgroundColor: colors.surface,
+      backgroundColor: colors.surfaceSoft,
+      borderColor: 'transparent',
       borderRadius: radius.pill,
-      height: 46,
+      borderWidth: 0,
+      height: 42,
       justifyContent: 'center',
-      width: 46,
+      width: 42,
     },
     circleButtonSmall: {
       alignItems: 'center',
       backgroundColor: colors.surfaceSoft,
+      borderColor: 'transparent',
       borderRadius: radius.pill,
-      height: 36,
+      borderWidth: 0,
+      height: 34,
       justifyContent: 'center',
-      width: 36,
+      width: 34,
     },
     playlistPanel: {
       backgroundColor: colors.surface,
-      borderRadius: radius.lg,
+      borderColor: 'transparent',
+      borderRadius: 24,
+      borderWidth: 0,
       marginBottom: spacing.md,
-      padding: spacing.base,
+      padding: spacing.md,
     },
     playlistCompact: {
       alignItems: 'center',
       backgroundColor: colors.surface,
-      borderRadius: radius.lg,
+      borderColor: 'transparent',
+      borderRadius: 18,
+      borderWidth: 0,
       flexDirection: 'row',
-      gap: spacing.md,
+      gap: spacing.sm,
       marginBottom: spacing.sm,
-      minHeight: 64,
-      padding: spacing.base,
+      minHeight: 60,
+      padding: spacing.md,
     },
     playlistCardRow: {
       alignItems: 'center',
@@ -2759,10 +3094,12 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     groupPanel: {
       backgroundColor: colors.surface,
-      borderRadius: radius.lg,
+      borderColor: 'transparent',
+      borderRadius: 22,
+      borderWidth: 0,
       gap: spacing.sm,
       marginBottom: spacing.md,
-      padding: spacing.base,
+      padding: spacing.md,
     },
     groupTitleRow: {
       alignItems: 'center',
@@ -2778,9 +3115,16 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     backRow: {
       alignItems: 'center',
+      alignSelf: 'flex-start',
+      backgroundColor: colors.surfaceSoft,
+      borderColor: 'transparent',
+      borderRadius: radius.pill,
+      borderWidth: 0,
       flexDirection: 'row',
       gap: spacing.sm,
       marginBottom: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
     },
     backText: {
       color: colors.textMuted,
@@ -2788,25 +3132,14 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       fontSize: 13,
       fontWeight: '900',
     },
-    inlineRemove: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: spacing.sm,
-      marginBottom: spacing.md,
-      marginLeft: spacing.md,
-    },
-    removeText: {
-      color: colors.danger,
-      fontFamily: typography.fontFamily.extraBold,
-      fontSize: 12,
-      fontWeight: '900',
-    },
     panel: {
       backgroundColor: colors.surface,
-      borderRadius: radius.lg,
-      gap: spacing.md,
+      borderColor: 'transparent',
+      borderRadius: 24,
+      borderWidth: 0,
+      gap: spacing.sm,
       marginBottom: spacing.lg,
-      padding: spacing.base,
+      padding: spacing.md,
     },
     panelTitle: {
       color: colors.textPrimary,
@@ -2824,9 +3157,9 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     settingRow: {
       alignItems: 'center',
       backgroundColor: colors.surfaceSoft,
-      borderColor: colors.divider,
-      borderRadius: radius.md,
-      borderWidth: 1,
+      borderColor: 'transparent',
+      borderRadius: 18,
+      borderWidth: 0,
       flexDirection: 'row',
       gap: spacing.md,
       justifyContent: 'space-between',
@@ -2842,12 +3175,16 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     payloadPreview: {
       backgroundColor: colors.surfaceSoft,
-      borderRadius: radius.md,
+      borderColor: 'transparent',
+      borderRadius: 18,
+      borderWidth: 0,
       gap: spacing.xs,
       padding: spacing.md,
     },
     segmented: {
       backgroundColor: colors.surfaceSoft,
+      borderColor: 'transparent',
+      borderWidth: 0,
       borderRadius: radius.pill,
       flexDirection: 'row',
       marginBottom: spacing.md,
@@ -2860,7 +3197,7 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       paddingVertical: spacing.sm,
     },
     segmentActive: {
-      backgroundColor: colors.primary,
+      backgroundColor: isDark ? '#FFFFFF' : '#1B1C1C',
     },
     segmentText: {
       color: colors.textSecondary,
@@ -2870,7 +3207,7 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       textTransform: 'capitalize',
     },
     segmentTextActive: {
-      color: '#FFFFFF',
+      color: isDark ? '#050606' : '#FAF8FF',
     },
     nowPlayingScreen: {
       backgroundColor: colors.background,
@@ -2878,12 +3215,12 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       overflow: 'hidden',
     },
     nowPlayingDark: {
-      backgroundColor: '#05070A',
+      backgroundColor: '#050606',
     },
     ringOne: {
-      borderColor: isDark ? 'rgba(224,242,254,0.05)' : 'rgba(183,201,225,0.18)',
+      borderColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.08)',
       borderRadius: 360,
-      borderWidth: 1,
+      borderWidth: 0,
       height: 720,
       left: -160,
       position: 'absolute',
@@ -2891,9 +3228,9 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       width: 720,
     },
     ringTwo: {
-      borderColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(183,201,225,0.16)',
+      borderColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.08)',
       borderRadius: 280,
-      borderWidth: 1,
+      borderWidth: 0,
       height: 560,
       left: -80,
       position: 'absolute',
@@ -2901,9 +3238,9 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       width: 560,
     },
     ringThree: {
-      borderColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(183,201,225,0.14)',
+      borderColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.07)',
       borderRadius: 220,
-      borderWidth: 1,
+      borderWidth: 0,
       height: 440,
       left: -20,
       position: 'absolute',
@@ -2915,8 +3252,8 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       flex: 1,
       justifyContent: 'center',
       padding: spacing.xl,
-      paddingBottom: 128,
-      paddingTop: 96,
+      paddingBottom: 104,
+      paddingTop: 72,
       zIndex: 1,
     },
     nowHeaderTitle: {
@@ -2930,19 +3267,27 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     nowArtworkShell: {
       alignItems: 'center',
       alignSelf: 'center',
-      borderRadius: 32,
-      marginBottom: 40,
-      shadowColor: isDark ? '#FFFFFF' : '#B7C9D5',
-      shadowOffset: { width: 0, height: 18 },
-      shadowOpacity: isDark ? 0.08 : 0.28,
-      shadowRadius: 30,
+      borderRadius: 26,
+      marginBottom: 34,
+      position: 'relative',
+      shadowColor: isDark ? '#FFFFFF' : '#000000',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: isDark ? 0.04 : 0.18,
+      shadowRadius: 20,
+    },
+    nowArtworkGlow: {
+      overflow: 'visible',
+    },
+    nowArtworkGlowWrapper: {
+      borderRadius: 26,
+      overflow: 'hidden',
     },
     nowInfoRow: {
       alignItems: 'center',
       alignSelf: 'stretch',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: spacing.xxl,
+      marginBottom: spacing.xl,
       paddingHorizontal: spacing.xs,
     },
     nowTitleWrap: {
@@ -2953,30 +3298,34 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     nowTitle: {
       color: colors.textPrimary,
       fontFamily: typography.fontFamily.bold,
-      fontSize: 32,
+      fontSize: 30,
       fontWeight: '700',
-      lineHeight: 40,
+      lineHeight: 36,
       textAlign: 'center',
     },
     nowArtist: {
       color: colors.textSecondary,
       fontFamily: typography.fontFamily.medium,
-      fontSize: 16,
+      fontSize: 15,
       fontWeight: '500',
-      lineHeight: 24,
+      lineHeight: 22,
       marginTop: spacing.xs,
       textAlign: 'center',
     },
     favoriteBig: {
       alignItems: 'center',
-      height: 44,
+      height: 40,
       justifyContent: 'center',
-      width: 44,
+      width: 40,
     },
     progressShell: {
       alignSelf: 'stretch',
       marginTop: spacing.sm,
       paddingHorizontal: spacing.xs,
+    },
+    progressTouchArea: {
+      height: 32,
+      justifyContent: 'center',
     },
     progressBar: {
       backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : colors.divider,
@@ -3015,34 +3364,48 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       alignSelf: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: 40,
-      paddingHorizontal: spacing.base,
+      marginTop: 30,
+      paddingHorizontal: spacing.sm,
       width: '100%',
-      maxWidth: 340,
+      maxWidth: 300,
+    },
+    playButtonShell: {
+      alignItems: 'center',
+      height: 88,
+      justifyContent: 'center',
+      position: 'relative',
+      width: 88,
+    },
+    playButtonGlow: {
+      overflow: 'visible',
+    },
+    playButtonGlowWrapper: {
+      borderRadius: radius.pill,
+      overflow: 'hidden',
     },
     controlButton: {
       alignItems: 'center',
-      height: 44,
+      height: 38,
       justifyContent: 'center',
-      width: 44,
+      width: 38,
     },
     controlButtonLarge: {
       alignItems: 'center',
-      height: 54,
+      height: 42,
       justifyContent: 'center',
-      width: 54,
+      width: 42,
     },
     playButtonHuge: {
       alignItems: 'center',
       backgroundColor: isDark ? '#FFFFFF' : '#1B1C1C',
       borderRadius: radius.pill,
-      height: 80,
+      height: 68,
       justifyContent: 'center',
       shadowColor: isDark ? '#FFFFFF' : '#1B1C1C',
       shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: isDark ? 0.4 : 0.18,
-      shadowRadius: 30,
-      width: 80,
+      shadowOpacity: isDark ? 0.22 : 0.14,
+      shadowRadius: 18,
+      width: 68,
     },
     bottomActionRow: {
       flexDirection: 'row',
@@ -3059,30 +3422,39 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       textAlign: 'center',
     },
     modalBackdrop: {
-      backgroundColor: 'rgba(0,0,0,0.42)',
+      backgroundColor: isDark ? 'rgba(0,0,0,0.62)' : 'rgba(5,7,10,0.34)',
       flex: 1,
       justifyContent: 'flex-end',
-      padding: spacing.xl,
+      padding: spacing.lg,
     },
     modalCard: {
       backgroundColor: colors.surface,
-      borderRadius: radius.xl,
-      gap: spacing.md,
+      borderColor: 'transparent',
+      borderRadius: 24,
+      borderWidth: 0,
+      gap: spacing.sm,
       maxHeight: '82%',
-      padding: spacing.lg,
+      padding: spacing.md,
     },
     largeModalCard: {
       backgroundColor: colors.surface,
-      borderRadius: radius.xl,
-      gap: spacing.md,
+      borderColor: 'transparent',
+      borderRadius: 24,
+      borderWidth: 0,
+      gap: spacing.sm,
       maxHeight: '78%',
-      padding: spacing.lg,
+      padding: spacing.md,
     },
     modalRow: {
       alignItems: 'center',
+      backgroundColor: colors.surfaceSoft,
+      borderColor: 'transparent',
+      borderRadius: 18,
+      borderWidth: 0,
       flexDirection: 'row',
       gap: spacing.md,
-      minHeight: 46,
+      minHeight: 52,
+      paddingHorizontal: spacing.md,
     },
     modalRowText: {
       color: colors.textPrimary,
@@ -3090,14 +3462,20 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       fontSize: 15,
       fontWeight: '800',
     },
+    modalDangerText: {
+      color: colors.danger,
+    },
     modalTrackRow: {
       alignItems: 'center',
-      borderBottomColor: colors.divider,
-      borderBottomWidth: 1,
+      backgroundColor: colors.surfaceSoft,
+      borderColor: 'transparent',
+      borderRadius: 18,
+      borderWidth: 0,
       flexDirection: 'row',
       gap: spacing.md,
-      minHeight: 62,
-      paddingVertical: spacing.sm,
+      marginBottom: spacing.sm,
+      minHeight: 64,
+      padding: spacing.sm,
     },
     addedText: {
       color: colors.textMuted,
@@ -3107,7 +3485,9 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
     },
     modalInput: {
       backgroundColor: colors.surfaceSoft,
-      borderRadius: radius.md,
+      borderColor: 'transparent',
+      borderRadius: 18,
+      borderWidth: 0,
       color: colors.textPrimary,
       fontFamily: typography.fontFamily.bold,
       fontSize: 16,
@@ -3116,10 +3496,12 @@ const createStyles = (colors: TunifyColors, isDark: boolean) =>
       paddingHorizontal: spacing.base,
     },
     detailRow: {
-      borderBottomColor: colors.divider,
-      borderBottomWidth: 1,
+      backgroundColor: colors.surfaceSoft,
+      borderColor: 'transparent',
+      borderRadius: radius.md,
+      borderWidth: 0,
       gap: spacing.xs,
-      paddingBottom: spacing.sm,
+      padding: spacing.sm,
     },
     detailLabel: {
       color: colors.textMuted,

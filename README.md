@@ -143,7 +143,7 @@ adb devices
 
 ## Install on a Phone with Wireless Debugging
 
-Wireless debugging lets you build, install, and preview the app on a real Android phone without a USB cable after the first pairing step.
+Wireless debugging lets you build, install, and preview the app on a real Android phone without a USB cable after pairing. This is the recommended flow when you want to test on a physical phone and keep Fast Refresh available.
 
 Before starting:
 
@@ -151,6 +151,12 @@ Before starting:
 - On the phone, open Developer Options and enable Wireless debugging.
 - Keep the Wireless debugging screen open while pairing.
 - Make sure Android SDK Platform-Tools is installed and `adb` is available in your terminal.
+
+On Windows PowerShell, if `adb` is not in your `PATH`, define it once per terminal session:
+
+```powershell
+$adb="$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
+```
 
 ### 1. Pair the Phone
 
@@ -168,6 +174,14 @@ On the laptop:
 adb pair PHONE_IP:PAIRING_PORT
 ```
 
+On Windows PowerShell:
+
+```powershell
+& $adb kill-server
+& $adb start-server
+& $adb pair PHONE_IP:PAIRING_PORT
+```
+
 Example:
 
 ```sh
@@ -182,6 +196,13 @@ After pairing, go back to the main Wireless debugging screen on the phone and no
 
 ```sh
 adb connect PHONE_IP:CONNECT_PORT
+```
+
+On Windows PowerShell:
+
+```powershell
+& $adb connect PHONE_IP:CONNECT_PORT
+& $adb devices
 ```
 
 Example:
@@ -206,16 +227,31 @@ You should see something like:
 
 Use this flow when you want Fast Refresh / hot reload while developing.
 
-Terminal 1:
+Terminal 1, from the repository root:
 
 ```sh
 npm run mobile:start
 ```
 
-Terminal 2:
+Terminal 2, from the repository root:
 
 ```sh
+adb reverse tcp:8081 tcp:8081
 npm run mobile:android
+```
+
+On Windows PowerShell:
+
+```powershell
+$adb="$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
+& $adb reverse tcp:8081 tcp:8081
+npm.cmd run mobile:android
+```
+
+If more than one device is connected, pass the wireless device ID shown by `adb devices`:
+
+```powershell
+npm.cmd run mobile:android -- --deviceId=PHONE_IP:CONNECT_PORT
 ```
 
 React Native will build the debug app, install it to the connected wireless device, and open it. Keep Metro running for Fast Refresh.
@@ -240,9 +276,37 @@ adb install -r app\build\outputs\apk\debug\app-debug.apk
 
 The debug APK still expects Metro when opened in development mode.
 
+### 5. Build and Install a Standalone Release APK
+
+Use this flow when you want an APK that can open without Metro running.
+
+From the repository root on macOS/Linux:
+
+```sh
+cd apps/mobile/android
+./gradlew assembleRelease
+adb install -r app/build/outputs/apk/release/app-release.apk
+```
+
+On Windows PowerShell:
+
+```powershell
+cd apps/mobile/android
+.\gradlew.bat assembleRelease
+& $adb install -r app\build\outputs\apk\release\app-release.apk
+```
+
+The APK will be generated at:
+
+```txt
+apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+```
+
+Release APKs are standalone and do not need Metro to be running.
+
 ## Build a Release APK
 
-From the mobile Android folder:
+If the phone is already connected through USB or wireless ADB, build the release APK from the mobile Android folder:
 
 ```sh
 cd apps/mobile/android

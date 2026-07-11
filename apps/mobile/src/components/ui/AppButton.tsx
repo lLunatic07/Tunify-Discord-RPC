@@ -45,8 +45,8 @@ export function AppButton({
     [resolveColors, systemScheme, themeMode],
   );
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const isDarkPalette = colors.background === '#05070A';
-  const solidForeground = variant === 'primary' && isDarkPalette ? '#05070A' : '#FFFFFF';
+  const isDarkPalette = colors.background === '#050606';
+  const solidForeground = variant === 'primary' && isDarkPalette ? '#050606' : '#FFFFFF';
   const iconColor = variant === 'secondary' ? colors.textPrimary : solidForeground;
 
   return (
@@ -62,7 +62,7 @@ export function AppButton({
         style,
       ]}
     >
-      <Icon color={iconColor} size={18} />
+      <Icon color={iconColor} size={15} />
       <Text
         style={[
           styles.label,
@@ -81,20 +81,20 @@ const createStyles = (colors: TunifyColors) =>
     root: {
       alignItems: 'center',
       borderRadius: radius.pill,
-      borderWidth: 1,
+      borderWidth: 0,
       flexDirection: 'row',
-      gap: spacing.sm,
+      gap: spacing.xs,
       justifyContent: 'center',
-      minHeight: 50,
-      paddingHorizontal: spacing.lg,
+      minHeight: 42,
+      paddingHorizontal: spacing.base,
     },
     primary: {
-      backgroundColor: colors.background === '#05070A' ? '#FFFFFF' : colors.primary,
-      borderColor: colors.background === '#05070A' ? '#FFFFFF' : colors.primary,
+      backgroundColor: colors.background === '#050606' ? '#FFFFFF' : colors.primary,
+      borderColor: colors.background === '#050606' ? '#FFFFFF' : colors.primary,
     },
     secondary: {
-      backgroundColor: colors.background === '#05070A' ? 'rgba(255,255,255,0.04)' : colors.surface,
-      borderColor: colors.divider,
+      backgroundColor: colors.background === '#050606' ? colors.surfaceSoft : colors.surface,
+      borderColor: 'transparent',
     },
     danger: {
       backgroundColor: colors.danger,
@@ -105,7 +105,7 @@ const createStyles = (colors: TunifyColors) =>
     },
     label: {
       fontFamily: typography.fontFamily.extraBold,
-      fontSize: 14,
+      fontSize: 12,
       fontWeight: '900',
     },
     pressed: {
@@ -118,6 +118,6 @@ const createStyles = (colors: TunifyColors) =>
       color: '#FFFFFF',
     },
     darkPrimaryLabel: {
-      color: '#05070A',
+      color: '#050606',
     },
   });

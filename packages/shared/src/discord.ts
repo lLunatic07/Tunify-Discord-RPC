@@ -13,6 +13,8 @@ export type DiscordPresencePayload = {
   album?: string;
   duration?: number;
   position?: number;
+  startedAt?: number;
+  endsAt?: number;
   isPlaying: boolean;
   largeImage: string;
   largeText?: string;

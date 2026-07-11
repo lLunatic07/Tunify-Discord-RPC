@@ -9,6 +9,10 @@ def hermesOsBin = osName.contains("windows")
         : osName.contains("mac")
             ? "osx-bin/hermesc"
             : "linux64-bin/hermesc"
+def tunifyCxxStagingDir = System.getenv("TUNIFY_CXX_BUILD_DIR")
+if (!tunifyCxxStagingDir && osName.contains("windows")) {
+    tunifyCxxStagingDir = "C:/tmp/tunify-cxx/app"
+}
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -125,6 +129,9 @@ android {
     externalNativeBuild {
         cmake {
             path file("CMakeLists.txt")
+            if (tunifyCxxStagingDir) {
+                buildStagingDirectory file(tunifyCxxStagingDir)
+            }
         }
     }
     signingConfigs {

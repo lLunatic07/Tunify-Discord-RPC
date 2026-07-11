@@ -18,6 +18,7 @@ type NativeDiscordPresenceModule = {
     artist: string,
     album: string,
     startedAt: number,
+    endsAt: number,
     largeImage: string,
     largeText: string,
     smallImage: string,
@@ -49,6 +50,8 @@ const logFallback = (method: string, payload?: unknown) => {
 };
 
 const PRESENCE_DUPLICATE_WINDOW_MS = 2000;
+const PRESENCE_UPDATE_RETRY_ATTEMPTS = 3;
+const PRESENCE_UPDATE_RETRY_DELAY_MS = 650;
 
 let inFlightPresence:
   | {
@@ -60,6 +63,11 @@ let presenceUpdateQueue: Promise<boolean> = Promise.resolve(true);
 let lastSuccessfulPresenceKey: string | undefined;
 let lastSuccessfulPresenceAt = 0;
 
+const wait = (durationMs: number) =>
+  new Promise<void>(resolve => {
+    setTimeout(resolve, durationMs);
+  });
+
 const buildPresenceKey = (payload: DiscordPresencePayload) =>
   [
     payload.title,
@@ -70,6 +78,8 @@ const buildPresenceKey = (payload: DiscordPresencePayload) =>
     payload.largeText ?? '',
     payload.smallImage,
     payload.smallText ?? '',
+    payload.startedAt ?? 0,
+    payload.endsAt ?? 0,
   ].join('\u001f');
 
 export function buildDiscordPresencePayload(
@@ -77,6 +87,12 @@ export function buildDiscordPresencePayload(
   state: PlaybackState,
 ): DiscordPresencePayload {
   const largeImage = resolvePresenceLargeImage(track);
+  const startedAt = state.isPlaying
+    ? state.startedAt ?? Date.now() - state.position * 1000
+    : undefined;
+  const endsAt = startedAt && track.duration && track.duration > state.position
+    ? startedAt + track.duration * 1000
+    : undefined;
 
   return {
     title: track.title || 'Unknown Title',
@@ -84,6 +100,8 @@ export function buildDiscordPresencePayload(
     album: track.album,
     duration: track.duration,
     position: state.position,
+    startedAt,
+    endsAt,
     isPlaying: state.isPlaying,
     largeImage,
     largeText: track.album || track.title || 'Tunify',
@@ -139,24 +157,48 @@ export const DiscordPresence = {
 
     logFallback('updatePresence', payload);
     const startedAt = payload.isPlaying
-      ? now - (payload.position ?? 0) * 1000
+      ? payload.startedAt ?? now - (payload.position ?? 0) * 1000
       : 0;
+    const endsAt = payload.isPlaying ? payload.endsAt ?? 0 : 0;
+
+    const updateNativePresence = async () => {
+      for (let attempt = 1; attempt <= PRESENCE_UPDATE_RETRY_ATTEMPTS; attempt += 1) {
+        try {
+          const success =
+            NativeDiscordPresence?.updatePresence(
+              payload.title,
+              payload.artist ?? '',
+              payload.album ?? '',
+              startedAt,
+              endsAt,
+              payload.largeImage,
+              payload.largeText ?? '',
+              payload.smallImage,
+              payload.smallText ?? '',
+            ) ?? true;
+
+          if (await success) {
+            return true;
+          }
+        } catch (error) {
+          logFallback('updatePresence attempt failed', {
+            attempt,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+
+        if (attempt < PRESENCE_UPDATE_RETRY_ATTEMPTS) {
+          await wait(PRESENCE_UPDATE_RETRY_DELAY_MS * attempt);
+          await (NativeDiscordPresence?.connect().catch(() => false) ?? Promise.resolve(false));
+        }
+      }
+
+      return false;
+    };
 
     const updatePromise = presenceUpdateQueue
       .catch(() => true)
-      .then(
-        () =>
-          NativeDiscordPresence?.updatePresence(
-            payload.title,
-            payload.artist ?? '',
-            payload.album ?? '',
-            startedAt,
-            payload.largeImage,
-            payload.largeText ?? '',
-            payload.smallImage,
-            payload.smallText ?? '',
-          ) ?? Promise.resolve(true),
-      )
+      .then(updateNativePresence)
       .then(success => {
         if (success) {
           lastSuccessfulPresenceKey = presenceKey;
